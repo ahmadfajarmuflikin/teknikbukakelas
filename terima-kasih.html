@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>Pembayaran Berhasil - Paket Sedang Disiapkan | Kang Deden Gurame</title>
+    <meta name="description" content="Pembayaran Anda telah berhasil diverifikasi. Paket pesanan fisik Anda sedang kami siapkan untuk dikirim.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Custom Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            orange: '#FF7A00',
+                            amber: '#FFA800',
+                            yellow: '#FFDE59',
+                            dark: '#0F172A',
+                            cream: '#FFFBF2'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        heading: ['"Fredoka"', 'cursive', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .pattern-dots {
+            background-image: radial-gradient(rgba(255, 122, 0, 0.12) 1.5px, transparent 1.5px);
+            background-size: 16px 16px;
+        }
+        @keyframes scaleCheck {
+            0% { transform: scale(0); opacity: 0; }
+            60% { transform: scale(1.15); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+        .animate-check {
+            animation: scaleCheck 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+    </style>
+</head>
+<body class="bg-[#F8FAFC] text-slate-800 font-sans antialiased min-h-screen flex flex-col justify-between pattern-dots">
+
+    <!-- TOP HEADER -->
+    <header class="bg-white border-b border-slate-100 shadow-xs py-3.5 px-4 sm:px-6">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-brand-orange to-brand-amber text-white flex items-center justify-center font-heading text-base sm:text-lg font-bold shadow-sm">
+                    G
+                </div>
+                <div>
+                    <div class="font-heading font-bold text-sm sm:text-base text-slate-900 leading-none">
+                        KANG DEDEN GURAME
+                    </div>
+                    <span class="text-[10px] sm:text-xs text-slate-500 font-medium">Konfirmasi Pengiriman Paket Fisik</span>
+                </div>
+            </div>
+            <a href="https://wa.me/6285713911142" target="_blank" class="text-xs font-bold text-slate-600 hover:text-emerald-600 flex items-center gap-1.5 transition-colors">
+                <i class="fa-brands fa-whatsapp text-emerald-600 text-sm"></i>
+                <span class="hidden sm:inline">CS Pengiriman</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-grow flex items-center justify-center py-8 sm:py-14 px-4">
+        <div class="max-w-xl w-full mx-auto">
+            
+            <div class="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200/90 shadow-xl text-center relative overflow-hidden">
+                
+                <div class="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-emerald-400 via-teal-500 to-emerald-600"></div>
+
+                <!-- Animated Success Icon -->
+                <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-3xl sm:text-4xl mx-auto mb-4 shadow-lg shadow-emerald-500/15 animate-check">
+                    <i class="fa-solid fa-box-open"></i>
+                </div>
+
+                <!-- Main Status -->
+                <span class="inline-block bg-emerald-100 text-emerald-800 font-extrabold text-[10px] sm:text-xs uppercase px-3 py-1 rounded-full mb-2 tracking-wider">
+                    🎉 Pembayaran Sukses • Paket Sedang Diproses
+                </span>
+                
+                <h1 class="font-heading font-black text-2xl sm:text-3xl text-slate-900 leading-tight mb-2">
+                    Terima Kasih atas Pesanan Anda!
+                </h1>
+                
+                <p class="text-xs sm:text-sm text-slate-600 max-w-md mx-auto leading-relaxed mb-5">
+                    Pembayaran Anda telah kami verifikasi. Tim kami sedang menyiapkan dan mengemas paket fisik pesanan Anda untuk segera dikirimkan ke alamat Anda.
+                </p>
+
+                <!-- Transaction Summary Box -->
+                <div class="bg-slate-50 rounded-2xl p-4 sm:p-5 border border-slate-200 text-left space-y-2.5 mb-5 text-xs sm:text-sm">
+                    <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                        <span class="text-slate-500 font-medium">Status Transaksi</span>
+                        <span class="font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                            ✅ LUNAS / SIAP PACKING
+                        </span>
+                    </div>
+
+                    <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+                        <span class="text-slate-500 font-medium">Tanggal Transaksi</span>
+                        <span class="font-bold text-slate-800" id="tx-date">-</span>
+                    </div>
+
+                    <div class="flex items-center justify-between" id="ref-row">
+                        <span class="text-slate-500 font-medium">Nomor Referensi Pesanan</span>
+                        <span class="font-mono font-bold text-slate-800 text-xs" id="tx-ref">ORDER-CONFIRMED</span>
+                    </div>
+                </div>
+
+                <!-- Physical Shipping Steps -->
+                <div class="bg-amber-50/80 rounded-2xl p-4 sm:p-5 border border-amber-200/90 text-left mb-6 space-y-2 text-xs sm:text-sm">
+                    <div class="font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-truck-fast text-brand-orange text-base"></i>
+                        <span>Informasi Pengiriman Paket:</span>
+                    </div>
+                    <ul class="space-y-2 text-slate-700 leading-relaxed pl-1">
+                        <li class="flex items-start gap-2">
+                            <span class="text-brand-orange font-bold">1.</span>
+                            <span><strong>Proses Packing:</strong> Buku fisik pesanan Anda dikemas rapi menggunakan bubble wrap pelindung agar aman saat pengiriman.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-brand-orange font-bold">2.</span>
+                            <span><strong>Nomor Resi:</strong> Begitu paket diserahkan ke pihak ekspedisi (JNE/J&T/SiCepat), nomor resi akan langsung kami infokan melalui WhatsApp / Email.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-brand-orange font-bold">3.</span>
+                            <span><strong>Estimasi Pengiriman:</strong> Paket umumnya sampai ke alamat tujuan dalam waktu 2 - 4 hari kerja.</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="space-y-2.5">
+                    <a href="https://wa.me/6285713911142?text=Halo%20Admin%20Kang%20Deden%20Gurame,%20saya%20sudah%20melakukan%20pembayaran%20buku%20fisik%20dan%20ingin%20cek%20status%20pengiriman%20paket." 
+                       target="_blank"
+                       class="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs sm:text-sm py-3.5 px-5 rounded-xl shadow-md transition-all active:scale-95 text-center">
+                        <i class="fa-brands fa-whatsapp text-lg"></i>
+                        <span>Tanya Status Paket via WhatsApp</span>
+                    </a>
+
+                    <a href="/" 
+                       class="w-full inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs sm:text-sm py-2.5 px-4 rounded-xl border border-slate-200 transition-all text-center">
+                        <i class="fa-solid fa-arrow-left"></i>
+                        <span>Kembali ke Halaman Utama</span>
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-white border-t border-slate-100 py-4 text-center text-slate-400 text-xs">
+        <p>© 2026 Kang Deden Gurame (GURAME — Guru Asyik Menyenangkan). All rights reserved.</p>
+    </footer>
+
+    <!-- Script to dynamically read URL query params -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const now = new Date();
+            const options = { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+            document.getElementById('tx-date').innerText = now.toLocaleDateString('id-ID', options) + ' WIB';
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const ref = urlParams.get('reference_id') || urlParams.get('trx_id') || urlParams.get('id');
+            if (ref) {
+                document.getElementById('tx-ref').innerText = ref;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,615 @@
+<?php
+/**
+ * Template Name: Landing Page 50 Teknik Anti Ngantuk
+ * Description: Template Landing Page Lengkap dengan Desain Ultra Responsif Mobile & Shortcode iPaymu
+ */
+?>
+<!DOCTYPE html>
+<html <?php language_attributes(); ?> class="scroll-smooth">
+<head>
+    <meta charset="<?php bloginfo('charset'); ?>">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>50 TEKNIK MEMBUKA KELAS ANTI NGANTUK - Kang Deden Gurame</title>
+    <meta name="description" content="Ubah 5 Menit Pertama Menjadi Momen yang Membuat Peserta Langsung Fokus, Aktif, dan Siap Belajar. Karya Kang Deden Gurame (GURAME — Guru Asyik Menyenangkan).">
+
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="50 TEKNIK MEMBUKA KELAS ANTI NGANTUK - Kang Deden Gurame">
+    <meta property="og:description" content="Ubah 5 Menit Pertama Menjadi Momen yang Membuat Peserta Langsung Fokus, Aktif, dan Siap Belajar.">
+    <meta property="og:type" content="website">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fredoka:wght@600;700&family=Caveat:wght@700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Alpine.js CDN -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/cdn.min.js"></script>
+
+    <!-- Custom Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                screens: {
+                    'xs': '375px',
+                    'sm': '640px',
+                    'md': '768px',
+                    'lg': '1024px',
+                    'xl': '1280px',
+                },
+                extend: {
+                    colors: {
+                        brand: {
+                            orange: '#FF7A00',
+                            amber: '#FFA800',
+                            yellow: '#FFDE59',
+                            dark: '#0F172A',
+                            cream: '#FFFBF2',
+                            softYellow: '#FEF9E7',
+                            teal: '#0D9488',
+                            blue: '#0284C7',
+                            purple: '#7C3AED'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        heading: ['"Fredoka"', 'cursive', 'sans-serif'],
+                        handwriting: ['"Caveat"', 'cursive']
+                    },
+                    boxShadow: {
+                        'fun': '0 10px 25px -5px rgba(255, 122, 0, 0.25), 0 8px 10px -6px rgba(255, 122, 0, 0.2)',
+                        'card-pop': '0 12px 25px -8px rgba(0, 0, 0, 0.08), 0 0 1px 1px rgba(0,0,0,0.03)'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .pattern-dots {
+            background-image: radial-gradient(rgba(255, 122, 0, 0.12) 1.5px, transparent 1.5px);
+            background-size: 14px 14px;
+        }
+        .pattern-grid {
+            background-image: linear-gradient(to right, rgba(0,0,0,0.03) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(0,0,0,0.03) 1px, transparent 1px);
+            background-size: 16px 16px;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .safe-bottom {
+            padding-bottom: env(safe-area-inset-bottom, 12px);
+        }
+    </style>
+    <?php wp_head(); ?>
+</head>
+<body class="bg-[#F8FAFC] text-slate-800 font-sans antialiased overflow-x-hidden pb-24 md:pb-0" 
+      x-data="{ activeTab: 'tk', openFaq: null }">
+
+    <!-- TOP ANNOUNCEMENT BANNER -->
+    <div class="bg-gradient-to-r from-brand-orange via-amber-500 to-brand-orange text-white py-1.5 px-3 text-center text-[11px] sm:text-xs md:text-sm font-semibold tracking-wide shadow-sm flex items-center justify-center gap-1.5">
+        <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-white/20 text-white text-[9px] sm:text-[10px] font-bold uppercase tracking-wider shrink-0">
+            🔥 Spesial Pendidik
+        </span>
+        <span class="truncate">«Datang Menyenangkan, Pulang Dirindukan»</span>
+    </div>
+
+    <!-- MAIN HEADER -->
+    <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-sm">
+        <div class="max-w-5xl mx-auto px-3.5 sm:px-6 h-14 sm:h-20 flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+                <div class="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-br from-brand-orange to-brand-amber text-white flex items-center justify-center font-heading text-base sm:text-xl font-bold shadow-md shadow-orange-500/20 transform -rotate-3 shrink-0">
+                    G
+                </div>
+                <div class="min-w-0">
+                    <div class="font-heading font-bold text-sm sm:text-lg text-slate-900 tracking-tight leading-none flex items-center gap-1">
+                        <span>GURAME</span> 
+                        <span class="text-[8px] sm:text-[10px] bg-amber-100 text-amber-800 font-sans font-bold px-1 py-0.2 rounded uppercase shrink-0">Official</span>
+                    </div>
+                    <span class="text-[9px] sm:text-xs text-slate-500 font-medium truncate block">Guru Asyik Menyenangkan</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-1.5 sm:gap-3 shrink-0">
+                <a href="#manfaat" class="hidden md:inline-flex items-center gap-1 text-xs lg:text-sm font-bold text-slate-700 hover:text-brand-orange transition-colors px-2 py-1.5">
+                    <i class="fa-solid fa-gift text-brand-orange"></i> Manfaat
+                </a>
+                <a href="#testimoni" class="hidden md:inline-flex items-center gap-1 text-xs lg:text-sm font-bold text-slate-700 hover:text-brand-orange transition-colors px-2 py-1.5">
+                    <i class="fa-solid fa-star text-amber-400"></i> Testimoni
+                </a>
+                <a href="https://wa.me/6285713911142?text=Halo%20CS%20Kang%20Deden%20Gurame,%20saya%20ingin%20tanya%20informasi%20tentang%2050%20Teknik%20Membuka%20Kelas%20Anti%20Ngantuk." 
+                   target="_blank"
+                   class="inline-flex items-center justify-center gap-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] sm:text-xs px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg sm:rounded-xl border border-slate-200 transition-all">
+                    <i class="fa-brands fa-whatsapp text-emerald-600 text-sm sm:text-base"></i>
+                    <span class="hidden xs:inline">Tanya CS</span>
+                </a>
+                <a href="#order-form" 
+                   class="inline-flex items-center justify-center gap-1 bg-gradient-to-r from-brand-orange to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-[11px] sm:text-xs md:text-sm px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-lg sm:rounded-xl shadow-md hover:shadow-lg transition-all duration-200 active:scale-95">
+                    <i class="fa-solid fa-cart-shopping text-xs"></i>
+                    <span>Beli</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section class="relative bg-gradient-to-b from-brand-cream via-amber-50/40 to-white pt-5 pb-10 sm:pt-12 sm:pb-20 overflow-hidden pattern-dots">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 relative z-10">
+            
+            <div class="text-center max-w-3xl mx-auto mb-6 sm:mb-12">
+                <div class="inline-flex flex-wrap items-center justify-center gap-1 mb-3.5 sm:mb-5 bg-white/90 backdrop-blur-sm border border-amber-200 px-2.5 py-1 sm:px-4 sm:py-1.5 rounded-full shadow-sm text-[9px] xs:text-[10px] sm:text-xs">
+                    <span class="font-extrabold text-brand-orange uppercase tracking-wider">Khusus:</span>
+                    <span class="font-bold bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded">GURU TK</span>
+                    <span class="text-slate-300">•</span>
+                    <span class="font-bold bg-sky-100 text-sky-900 px-1.5 py-0.5 rounded">GURU SD</span>
+                    <span class="text-slate-300">•</span>
+                    <span class="font-bold bg-emerald-100 text-emerald-900 px-1.5 py-0.5 rounded">GURU TPQ</span>
+                    <span class="text-slate-300">•</span>
+                    <span class="font-bold bg-purple-100 text-purple-900 px-1.5 py-0.5 rounded">TRAINER</span>
+                </div>
+
+                <h1 class="font-heading font-extrabold text-2xl xs:text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-slate-900 leading-[1.15] mb-2.5 sm:mb-4 tracking-tight">
+                    <span class="text-brand-orange">50 TEKNIK</span> MEMBUKA KELAS <br>
+                    <span class="relative inline-block text-amber-600 bg-amber-100/90 px-2 py-0.5 sm:px-3 sm:py-1 rounded-xl sm:rounded-2xl border-2 border-dashed border-amber-400 mt-1">
+                        ANTI NGANTUK ⚡
+                    </span>
+                </h1>
+
+                <p class="text-xs xs:text-sm sm:text-base md:text-lg text-slate-600 max-w-2xl mx-auto font-medium leading-relaxed mb-4 sm:mb-6">
+                    Ubah <strong class="text-slate-900 font-bold bg-amber-200/60 px-1 py-0.5 rounded">5 Menit Pertama</strong> Menjadi Momen yang Membuat Peserta Langsung Fokus, Aktif, dan Siap Belajar
+                </p>
+
+                <div class="flex flex-wrap items-center justify-center gap-1 sm:gap-2 text-[10px] xs:text-[11px] sm:text-xs md:text-sm font-semibold text-slate-700 mb-5 sm:mb-8">
+                    <span class="bg-white border border-slate-200 px-2 py-0.5 rounded-md shadow-xs">Praktis</span>
+                    <span class="text-slate-300">•</span>
+                    <span class="bg-white border border-slate-200 px-2 py-0.5 rounded-md shadow-xs">Interaktif</span>
+                    <span class="text-slate-300">•</span>
+                    <span class="bg-white border border-slate-200 px-2 py-0.5 rounded-md shadow-xs">Mudah Dipraktikkan</span>
+                    <span class="text-slate-300">•</span>
+                    <span class="bg-white border border-slate-200 px-2 py-0.5 rounded-md shadow-xs">Bisa Langsung Digunakan</span>
+                </div>
+            </div>
+
+            <!-- PRODUCT IMAGE & PRICE -->
+            <div class="grid lg:grid-cols-12 gap-5 sm:gap-8 items-center max-w-4xl mx-auto mb-6 sm:mb-10">
+                
+                <div class="lg:col-span-6 flex justify-center">
+                    <div class="relative group max-w-[260px] xs:max-w-[290px] sm:max-w-sm w-full mx-auto">
+                        <div class="absolute inset-0 bg-gradient-to-tr from-orange-400 via-amber-300 to-yellow-200 rounded-3xl blur-lg opacity-40 group-hover:opacity-60 transition duration-500"></div>
+
+                        <div class="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl border-3 sm:border-4 border-white/90 bg-white">
+                            <img src="https://kangdedengurame.my.id/wp-content/uploads/2026/08/WhatsApp-Image-2026-08-27-at-07.54.22.jpeg" 
+                                 alt="50 TEKNIK MEMBUKA KELAS ANTI NGANTUK - Kang Deden Gurame" 
+                                 class="w-full h-auto object-cover rounded-xl sm:rounded-2xl">
+                        </div>
+
+                        <div class="absolute -top-2.5 -right-2 bg-gradient-to-r from-red-600 to-rose-500 text-white font-heading font-black text-[10px] sm:text-xs px-2.5 py-1 rounded-xl shadow-lg border border-white transform rotate-6 animate-pulse">
+                            PROMO SPESIAL
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-6 space-y-3 sm:space-y-4">
+                    <div class="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-7 border border-amber-200/90 shadow-lg">
+                        
+                        <div class="border-b border-slate-100 pb-2.5 mb-2.5 sm:pb-3 sm:mb-3">
+                            <div class="text-[10px] sm:text-xs font-bold text-brand-orange uppercase">Karya Kang Deden Gurame</div>
+                            <div class="text-[11px] sm:text-xs text-slate-600 font-semibold">GURAME — Guru Asyik Menyenangkan</div>
+                            <div class="font-handwriting text-base sm:text-xl text-slate-800 font-bold mt-0.5">
+                                «Datang Menyenangkan, Pulang Dirindukan»
+                            </div>
+                        </div>
+
+                        <div class="mb-3 sm:mb-4">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-slate-400 line-through">Rp 199.000</span>
+                                <span class="bg-red-100 text-red-700 text-[9px] sm:text-[10px] font-black px-1.5 py-0.2 rounded-full">Hemat 50%</span>
+                            </div>
+                            <div class="flex items-baseline gap-1 mt-0.5">
+                                <span class="text-xs font-bold text-slate-600">Rp</span>
+                                <span class="font-heading font-black text-2xl xs:text-3xl sm:text-4xl text-slate-900"><?php echo number_format((int) get_option('ipaymu_product_price', 99000), 0, ',', '.'); ?></span>
+                                <span class="text-[10px] sm:text-xs text-slate-500 font-medium">/ buku fisik</span>
+                            </div>
+                        </div>
+
+                        <div class="space-y-1 sm:space-y-1.5 mb-4 sm:mb-5 text-[11px] sm:text-xs text-slate-600 font-medium">
+                            <div class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-emerald-500 shrink-0"></i> <span>50 Pilihan Teknik Pembuka Kelas</span></div>
+                            <div class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-emerald-500 shrink-0"></i> <span>Untuk Guru TK, SD, TPQ, & Trainer</span></div>
+                            <div class="flex items-center gap-2"><i class="fa-solid fa-circle-check text-emerald-500 shrink-0"></i> <span>Siap Langsung Dipraktikkan</span></div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <a href="#order-form" 
+                               class="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-brand-orange via-amber-500 to-orange-600 hover:from-orange-600 hover:to-amber-600 text-white font-heading font-bold text-xs sm:text-base py-3 sm:py-3.5 px-4 rounded-xl sm:rounded-2xl shadow-fun hover:shadow-xl transition-all duration-200 active:scale-95 text-center">
+                                <i class="fa-solid fa-credit-card"></i>
+                                <span>AMBIL PROMO RP 99.000 SEKARANG</span>
+                            </a>
+                            <a href="https://wa.me/6285713911142?text=Halo%20CS%20Kang%20Deden%20Gurame,%20saya%20ingin%20tanya%20seputar%2050%20Teknik%20Membuka%20Kelas%20Anti%20Ngantuk." 
+                               target="_blank"
+                               class="w-full inline-flex items-center justify-center gap-1.5 text-[11px] sm:text-xs text-slate-500 hover:text-emerald-700 py-1 font-semibold">
+                                <i class="fa-brands fa-whatsapp text-emerald-600 text-sm"></i>
+                                <span>Butuh Bantuan? Hubungi CS via WhatsApp</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <!-- WAVE SEPARATOR -->
+    <div class="w-full overflow-hidden leading-none -mt-1 rotate-180">
+        <svg viewBox="0 0 1200 120" preserveAspectRatio="none" class="relative block w-full h-5 sm:h-10 fill-[#FEF2F2]">
+            <path d="M321.39 56.44c58-10.79 114.16-30.13 172-41.86 82.39-16.72 168.19-17.73 250.45-.39C823.78 31 906.67 72 985.66 92.83c70.05 18.48 146.53 26.09 214.34 3V0H0v27.35a600.21 600.21 0 00321.39 29.09z"></path>
+        </svg>
+    </div>
+
+    <!-- SECTION 2: KELAS BARU DIMULAI -->
+    <section class="bg-[#FEF2F2] py-8 sm:py-16 relative">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6">
+            <div class="text-center max-w-2xl mx-auto mb-6 sm:mb-10">
+                <h2 class="font-heading font-extrabold text-lg xs:text-xl sm:text-3xl text-slate-900 leading-tight">
+                    KELAS BARU DIMULAI… <br>
+                    <span class="text-red-600 underline decoration-wavy decoration-red-400">TAPI SUDAH KEHILANGAN PERHATIAN?</span>
+                </h2>
+                <p class="text-slate-600 mt-1.5 sm:mt-3 text-xs sm:text-base font-medium">Pernah mengalami situasi seperti ini?</p>
+            </div>
+
+            <div class="grid gap-2 sm:gap-3 max-w-2xl mx-auto mb-6 sm:mb-10">
+                <div class="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-xs border border-red-100 flex items-start gap-2.5 sm:gap-3">
+                    <span class="text-sm sm:text-lg shrink-0 mt-0.5">❌</span>
+                    <p class="text-slate-800 text-xs sm:text-sm font-medium leading-relaxed">Guru sudah siap mengajar, anak-anak masih sibuk sendiri.</p>
+                </div>
+                <div class="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-xs border border-red-100 flex items-start gap-2.5 sm:gap-3">
+                    <span class="text-sm sm:text-lg shrink-0 mt-0.5">❌</span>
+                    <p class="text-slate-800 text-xs sm:text-sm font-medium leading-relaxed">Baru beberapa menit, peserta mulai terlihat bosan.</p>
+                </div>
+                <div class="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-xs border border-red-100 flex items-start gap-2.5 sm:gap-3">
+                    <span class="text-sm sm:text-lg shrink-0 mt-0.5">❌</span>
+                    <p class="text-slate-800 text-xs sm:text-sm font-medium leading-relaxed">Ice breaking yang digunakan itu-itu lagi.</p>
+                </div>
+                <div class="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-xs border border-red-100 flex items-start gap-2.5 sm:gap-3">
+                    <span class="text-sm sm:text-lg shrink-0 mt-0.5">❌</span>
+                    <p class="text-slate-800 text-xs sm:text-sm font-medium leading-relaxed">Guru ingin membuat kelas seru, tetapi kehabisan ide.</p>
+                </div>
+                <div class="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl shadow-xs border border-red-100 flex items-start gap-2.5 sm:gap-3">
+                    <span class="text-sm sm:text-lg shrink-0 mt-0.5">❌</span>
+                    <p class="text-slate-800 text-xs sm:text-sm font-medium leading-relaxed">Trainer sudah berdiri di depan, tetapi energi peserta belum terbangun.</p>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 max-w-2xl mx-auto shadow-xl text-center relative overflow-hidden border border-slate-700">
+                <p class="font-heading font-bold text-sm sm:text-xl text-yellow-300 mb-1.5 sm:mb-2">Masalahnya belum tentu pada materinya.</p>
+                <p class="text-xs sm:text-sm text-slate-300 leading-relaxed mb-4 sm:mb-6">
+                    Bisa jadi, cara kita <strong class="text-white underline decoration-amber-400">MEMBUKA</strong> kelas belum berhasil merebut perhatian mereka.
+                </p>
+                <p class="text-[10px] sm:text-xs text-amber-200 font-medium mb-2.5 sm:mb-4">Karena sebelum peserta siap menerima materi, kita perlu membantu mereka untuk:</p>
+                <div class="flex flex-wrap items-center justify-center gap-1 sm:gap-2">
+                    <span class="bg-white/10 border border-white/20 px-2 py-0.5 rounded text-[10px] sm:text-xs font-bold text-white">HADIR</span>
+                    <span class="text-amber-400 font-bold text-xs">→</span>
+                    <span class="bg-white/10 border border-white/20 px-2 py-0.5 rounded text-[10px] sm:text-xs font-bold text-white">TERTARIK</span>
+                    <span class="text-amber-400 font-bold text-xs">→</span>
+                    <span class="bg-white/10 border border-white/20 px-2 py-0.5 rounded text-[10px] sm:text-xs font-bold text-white">TERLIBAT</span>
+                    <span class="text-amber-400 font-bold text-xs">→</span>
+                    <span class="bg-white/10 border border-white/20 px-2 py-0.5 rounded text-[10px] sm:text-xs font-bold text-white">FOKUS</span>
+                    <span class="text-amber-400 font-bold text-xs">→</span>
+                    <span class="bg-emerald-500/30 border border-emerald-400 px-2 py-0.5 rounded text-[10px] sm:text-xs font-bold text-emerald-300">SIAP BELAJAR</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- WAVE SEPARATOR -->
+    <div class="w-full overflow-hidden leading-none">
+        <svg viewBox="0 0 1200 120" preserveAspectRatio="none" class="relative block w-full h-5 sm:h-10 fill-[#FEF2F2]">
+            <path d="M321.39 56.44c58-10.79 114.16-30.13 172-41.86 82.39-16.72 168.19-17.73 250.45-.39C823.78 31 906.67 72 985.66 92.83c70.05 18.48 146.53 26.09 214.34 3V0H0v27.35a600.21 600.21 0 00321.39 29.09z"></path>
+        </svg>
+    </div>
+
+    <!-- SECTION 3: SUASANA KELAS BERBEDA -->
+    <section class="py-8 sm:py-16 bg-white relative">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6">
+            <div class="text-center max-w-2xl mx-auto mb-6 sm:mb-10">
+                <h2 class="font-heading font-extrabold text-lg xs:text-xl sm:text-3xl md:text-4xl text-slate-900 leading-tight">BAYANGKAN SUASANA KELAS YANG BERBEDA</h2>
+            </div>
+            <div class="grid md:grid-cols-2 gap-3.5 sm:gap-6 max-w-3xl mx-auto mb-6 sm:mb-12">
+                <div class="bg-slate-50 rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200 text-slate-600 flex flex-col justify-between">
+                    <div>
+                        <p class="font-bold text-slate-800 text-xs sm:text-sm mb-1">Guru masuk kelas.</p>
+                        <p class="text-[11px] sm:text-xs text-slate-500 mb-2">Tidak perlu langsung berkata:</p>
+                        <blockquote class="italic text-slate-700 bg-white p-3 rounded-xl sm:rounded-2xl border-l-4 border-slate-400 font-medium text-xs sm:text-sm">«“Anak-anak, buka buku halaman…”»</blockquote>
+                    </div>
+                    <div class="mt-3 pt-2.5 border-t border-slate-200 text-[10px] sm:text-[11px] text-slate-400">Pembukaan kelas yang monoton</div>
+                </div>
+                <div class="bg-gradient-to-br from-amber-500 via-brand-orange to-red-500 text-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl relative overflow-hidden flex flex-col justify-between">
+                    <div>
+                        <p class="font-bold text-yellow-300 text-xs sm:text-sm mb-2">Sebaliknya, guru membuka kelas dengan sebuah tantangan singkat.</p>
+                        <div class="grid grid-cols-2 gap-1 sm:gap-2 text-[10px] sm:text-xs font-semibold text-white">
+                            <div class="bg-white/15 p-1.5 rounded-lg">😊 Mulai tersenyum</div>
+                            <div class="bg-white/15 p-1.5 rounded-lg">👀 Tertuju ke guru</div>
+                            <div class="bg-white/15 p-1.5 rounded-lg">✋ Mulai bergerak</div>
+                            <div class="bg-white/15 p-1.5 rounded-lg">🗣️ Mulai menjawab</div>
+                            <div class="bg-white/15 p-1.5 rounded-lg">😂 Tertawa gembira</div>
+                            <div class="bg-white/15 p-1.5 rounded-lg">🤔 Rasa penasaran</div>
+                        </div>
+                    </div>
+                    <div class="mt-2.5 pt-2 border-t border-white/20 text-[10px] sm:text-xs text-amber-100 font-medium">Lalu guru menghubungkannya dengan pembelajaran. Kelas pun dimulai dengan energi yang berbeda.</div>
+                </div>
+            </div>
+            <div class="text-center max-w-xl mx-auto bg-amber-50 border border-amber-200 p-4 sm:p-6 rounded-2xl sm:rounded-3xl">
+                <p class="text-[10px] sm:text-[11px] uppercase tracking-wider text-slate-500 font-bold mb-0.5">Inilah yang ingin dibangun melalui:</p>
+                <h3 class="font-heading font-black text-base sm:text-2xl text-brand-orange mb-1.5">🚀 50 TEKNIK MEMBUKA KELAS ANTI NGANTUK</h3>
+                <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">Kumpulan teknik pembuka kelas yang dirancang agar mudah dipelajari, mudah dimodifikasi, dan mudah digunakan dalam berbagai situasi pembelajaran maupun training.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 4: 6 PILAR -->
+    <section class="py-8 sm:py-16 bg-slate-50 relative pattern-grid border-y border-slate-200/60">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6">
+            <div class="text-center max-w-2xl mx-auto mb-6 sm:mb-12">
+                <h2 class="font-heading font-extrabold text-lg xs:text-xl sm:text-3xl md:text-4xl text-slate-900 leading-tight mb-1.5 sm:mb-3">BUKAN SEKADAR KUMPULAN ICE BREAKING</h2>
+                <p class="text-slate-600 text-xs sm:text-sm md:text-base leading-relaxed">50 Teknik Membuka Kelas Anti Ngantuk bukan hanya tentang membuat kelas ramai atau membuat peserta tertawa.</p>
+                <p class="text-[10px] sm:text-xs text-slate-500 mt-1 font-medium">Aktivitas dipilih untuk membantu guru dan trainer membangun pembukaan yang memiliki tujuan.</p>
+            </div>
+            <div class="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-5">
+                <div class="bg-white rounded-xl sm:rounded-3xl p-3.5 sm:p-6 border border-slate-200/80 shadow-xs"><div class="text-lg sm:text-2xl mb-1.5">🧠</div><h3 class="font-heading font-bold text-sm sm:text-lg text-slate-900 mb-1">Membangun Fokus</h3><p class="text-[11px] sm:text-sm text-slate-600">Membantu peserta mengalihkan perhatian dan bersiap mengikuti kegiatan.</p></div>
+                <div class="bg-white rounded-xl sm:rounded-3xl p-3.5 sm:p-6 border border-slate-200/80 shadow-xs"><div class="text-lg sm:text-2xl mb-1.5">⚡</div><h3 class="font-heading font-bold text-sm sm:text-lg text-slate-900 mb-1">Menaikkan Energi</h3><p class="text-[11px] sm:text-sm text-slate-600">Menghidupkan kembali suasana ketika peserta mulai lesu.</p></div>
+                <div class="bg-white rounded-xl sm:rounded-3xl p-3.5 sm:p-6 border border-slate-200/80 shadow-xs"><div class="text-lg sm:text-2xl mb-1.5">❤️</div><h3 class="font-heading font-bold text-sm sm:text-lg text-slate-900 mb-1">Membangun Emosi Positif</h3><p class="text-[11px] sm:text-sm text-slate-600">Menciptakan suasana belajar yang lebih hangat dan menyenangkan.</p></div>
+                <div class="bg-white rounded-xl sm:rounded-3xl p-3.5 sm:p-6 border border-slate-200/80 shadow-xs"><div class="text-lg sm:text-2xl mb-1.5">🤝</div><h3 class="font-heading font-bold text-sm sm:text-lg text-slate-900 mb-1">Membangun Connection</h3><p class="text-[11px] sm:text-sm text-slate-600">Membantu guru atau trainer menciptakan kedekatan dengan peserta.</p></div>
+                <div class="bg-white rounded-xl sm:rounded-3xl p-3.5 sm:p-6 border border-slate-200/80 shadow-xs"><div class="text-lg sm:text-2xl mb-1.5">🙋</div><h3 class="font-heading font-bold text-sm sm:text-lg text-slate-900 mb-1">Mendorong Partisipasi</h3><p class="text-[11px] sm:text-sm text-slate-600">Peserta tidak hanya mendengar, tetapi ikut bergerak, menjawab, memilih, dan berinteraksi.</p></div>
+                <div class="bg-white rounded-xl sm:rounded-3xl p-3.5 sm:p-6 border border-slate-200/80 shadow-xs"><div class="text-lg sm:text-2xl mb-1.5">💡</div><h3 class="font-heading font-bold text-sm sm:text-lg text-slate-900 mb-1">Memantik Rasa Ingin Tahu</h3><p class="text-[11px] sm:text-sm text-slate-600">Pembukaan dapat menjadi jembatan menuju materi yang akan dipelajari.</p></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 5: 15 KATEGORI -->
+    <section class="py-8 sm:py-16 bg-white">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6">
+            <div class="text-center max-w-2xl mx-auto mb-6 sm:mb-10">
+                <h2 class="font-heading font-extrabold text-lg xs:text-xl sm:text-3xl md:text-4xl text-slate-900 leading-tight mb-1.5">APA YANG ADA DI DALAMNYA?</h2>
+                <p class="text-slate-600 text-xs sm:text-sm md:text-base">Anda akan mendapatkan inspirasi dari 50 teknik berbeda, antara lain:</p>
+            </div>
+            <div class="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3.5 mb-5 sm:mb-8">
+                <div class="bg-amber-50/70 border border-amber-200/80 rounded-xl p-2.5 sm:p-3.5 flex items-center gap-2.5"><span class="text-lg sm:text-xl">🎯</span><span class="font-bold text-slate-800 text-xs sm:text-sm">Permainan fokus & konsentrasi</span></div>
+                <div class="bg-orange-50/70 border border-orange-200/80 rounded-xl p-2.5 sm:p-3.5 flex items-center gap-2.5"><span class="text-lg sm:text-xl">👏</span><span class="font-bold text-slate-800 text-xs sm:text-sm">Tepuk kreatif</span></div>
+                <div class="bg-purple-50/70 border border-purple-200/80 rounded-xl p-2.5 sm:p-3.5 flex items-center gap-2.5"><span class="text-lg sm:text-xl">🧠</span><span class="font-bold text-slate-800 text-xs sm:text-sm">Brain gym sederhana</span></div>
+                <div class="bg-blue-50/70 border border-blue-200/80 rounded-xl p-2.5 sm:p-3.5 flex items-center gap-2.5"><span class="text-lg sm:text-xl">🎤</span><span class="font-bold text-slate-800 text-xs sm:text-sm">Call & response</span></div>
+                <div class="bg-emerald-50/70 border border-emerald-200/80 rounded-xl p-2.5 sm:p-3.5 flex items-center gap-2.5"><span class="text-lg sm:text-xl">🕵️</span><span class="font-bold text-slate-800 text-xs sm:text-sm">Tebak-tebakan & clue</span></div>
+                <div class="bg-yellow-50/70 border border-yellow-200/80 rounded-xl p-2.5 sm:p-3.5 flex items-center gap-2.5"><span class="text-lg sm:text-xl">⚡</span><span class="font-bold text-slate-800 text-xs sm:text-sm">Quick challenge</span></div>
+                <div class="bg-rose-50/70 border border-rose-200/80 rounded-xl p-2.5 sm:p-3.5 flex items-center gap-2.5"><span class="text-lg sm:text-xl">🎭</span><span class="font-bold text-slate-800 text-xs sm:text-sm">Gerak & ekspresi</span></div>
+                <div class="bg-teal-50/70 border border-teal-200/80 rounded-xl p-2.5 sm:p-3.5 flex items-center gap-2.5"><span class="text-lg sm:text-xl">🔎</span><span class="font-bold text-slate-800 text-xs sm:text-sm">Permainan observasi</span></div>
+                <div class="bg-cyan-50/70 border border-cyan-200/80 rounded-xl p-2.5 sm:p-3.5 flex items-center gap-2.5"><span class="text-lg sm:text-xl">💬</span><span class="font-bold text-slate-800 text-xs sm:text-sm">Aktivitas komunikasi</span></div>
+                <div class="bg-indigo-50/70 border border-indigo-200/80 rounded-xl p-2.5 sm:p-3.5 flex items-center gap-2.5"><span class="text-lg sm:text-xl">🤝</span><span class="font-bold text-slate-800 text-xs sm:text-sm">Permainan interaksi</span></div>
+                <div class="bg-lime-50/70 border border-lime-200/80 rounded-xl p-2.5 sm:p-3.5 flex items-center gap-2.5"><span class="text-lg sm:text-xl">🎵</span><span class="font-bold text-slate-800 text-xs sm:text-sm">Aktivitas ritme & suara</span></div>
+                <div class="bg-sky-50/70 border border-sky-200/80 rounded-xl p-2.5 sm:p-3.5 flex items-center gap-2.5"><span class="text-lg sm:text-xl">🎲</span><span class="font-bold text-slate-800 text-xs sm:text-sm">Games pembuka pembelajaran</span></div>
+                <div class="bg-amber-50/70 border border-amber-200/80 rounded-xl p-2.5 sm:p-3.5 flex items-center gap-2.5"><span class="text-lg sm:text-xl">💡</span><span class="font-bold text-slate-800 text-xs sm:text-sm">Aktivitas pemantik materi</span></div>
+                <div class="bg-pink-50/70 border border-pink-200/80 rounded-xl p-2.5 sm:p-3.5 flex items-center gap-2.5"><span class="text-lg sm:text-xl">😂</span><span class="font-bold text-slate-800 text-xs sm:text-sm">Ice breaking menyenangkan</span></div>
+                <div class="bg-emerald-50/70 border border-emerald-200/80 rounded-xl p-2.5 sm:p-3.5 flex items-center gap-2.5 xs:col-span-2 lg:col-span-1"><span class="text-lg sm:text-xl">🏆</span><span class="font-bold text-slate-800 text-xs sm:text-sm">Mini challenge individu & kelompok</span></div>
+            </div>
+            <p class="text-center text-[11px] sm:text-sm text-slate-500 font-medium italic">Semua dapat dipilih dan dimodifikasi sesuai usia, tujuan, materi, dan kondisi peserta.</p>
+        </div>
+    </section>
+
+    <!-- SECTION 6: TABS AUDIENCE -->
+    <section class="py-8 sm:py-16 bg-gradient-to-b from-amber-50/70 via-orange-50/40 to-white relative">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6">
+            <div class="text-center max-w-2xl mx-auto mb-5 sm:mb-8">
+                <h2 class="font-heading font-extrabold text-lg xs:text-xl sm:text-3xl md:text-4xl text-slate-900 leading-tight">1 PRODUK, BISA DIGUNAKAN DI BANYAK KELAS</h2>
+            </div>
+            <div class="flex items-center justify-start sm:justify-center overflow-x-auto no-scrollbar gap-1.5 sm:gap-2 pb-2 mb-5 sm:mb-8 px-1">
+                <button @click="activeTab = 'tk'" :class="activeTab === 'tk' ? 'bg-brand-orange text-white shadow-md' : 'bg-white text-slate-700'" class="px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl font-bold text-[11px] sm:text-sm border border-amber-200 shrink-0 whitespace-nowrap">🧒 GURU TK</button>
+                <button @click="activeTab = 'sd'" :class="activeTab === 'sd' ? 'bg-brand-orange text-white shadow-md' : 'bg-white text-slate-700'" class="px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl font-bold text-[11px] sm:text-sm border border-amber-200 shrink-0 whitespace-nowrap">📚 GURU SD</button>
+                <button @click="activeTab = 'tpq'" :class="activeTab === 'tpq' ? 'bg-brand-orange text-white shadow-md' : 'bg-white text-slate-700'" class="px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl font-bold text-[11px] sm:text-sm border border-amber-200 shrink-0 whitespace-nowrap">🕌 GURU TPQ</button>
+                <button @click="activeTab = 'trainer'" :class="activeTab === 'trainer' ? 'bg-brand-orange text-white shadow-md' : 'bg-white text-slate-700'" class="px-3 py-1.5 sm:px-4 sm:py-2.5 rounded-xl font-bold text-[11px] sm:text-sm border border-amber-200 shrink-0 whitespace-nowrap">🎤 TRAINER</button>
+            </div>
+            <div class="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 shadow-lg border border-amber-200">
+                <div x-show="activeTab === 'tk'" class="space-y-2.5 sm:space-y-3">
+                    <h3 class="font-heading font-bold text-base sm:text-lg text-slate-900">🧒 UNTUK GURU TK</h3>
+                    <div class="bg-amber-50 rounded-xl p-2.5 sm:p-3 border border-amber-200 text-xs sm:text-sm font-extrabold text-amber-900">GERAK + SUARA + EKSPRESI + IMAJINASI</div>
+                    <p class="text-xs sm:text-sm text-slate-700 font-medium">Cocok untuk membantu anak membangun perhatian sebelum masuk ke kegiatan utama.</p>
+                </div>
+                <div x-show="activeTab === 'sd'" class="space-y-2.5 sm:space-y-3" style="display: none;">
+                    <h3 class="font-heading font-bold text-base sm:text-lg text-slate-900">📚 UNTUK GURU SD</h3>
+                    <div class="bg-sky-50 rounded-xl p-2.5 sm:p-3 border border-sky-200 text-xs sm:text-sm font-extrabold text-sky-900">FOKUS + TANTANGAN + KERJA SAMA + RASA INGIN TAHU</div>
+                    <p class="text-xs sm:text-sm text-slate-700 font-medium">Aktivitas dapat dimodifikasi dan dihubungkan dengan Matematika, Bahasa Indonesia, IPAS, PAI, dll.</p>
+                </div>
+                <div x-show="activeTab === 'tpq'" class="space-y-2.5 sm:space-y-3" style="display: none;">
+                    <h3 class="font-heading font-bold text-base sm:text-lg text-slate-900">🕌 UNTUK GURU TPQ</h3>
+                    <div class="bg-emerald-50 rounded-xl p-2.5 sm:p-3 border border-emerald-200 text-xs sm:text-sm font-extrabold text-emerald-900">HIJAIYAH + TAJWID + DOA + AKHLAK + FIKIH + KISAH ISLAMI</div>
+                    <p class="text-xs sm:text-sm text-slate-700 font-medium">Belajar Al-Qur'an dan agama tetap memiliki tujuan, tetapi penyajiannya bisa lebih aktif dan menyenangkan.</p>
+                </div>
+                <div x-show="activeTab === 'trainer'" class="space-y-2.5 sm:space-y-3" style="display: none;">
+                    <h3 class="font-heading font-bold text-base sm:text-lg text-slate-900">🎤 UNTUK TRAINER</h3>
+                    <div class="bg-purple-50 rounded-xl p-2.5 sm:p-3 border border-purple-200 text-xs sm:text-sm font-extrabold text-purple-900">ENERGIZER + ICE BREAKING + GROUPING + FOCUSING + ENGAGEMENT</div>
+                    <p class="text-xs sm:text-sm text-slate-900 font-bold">Workshop • Seminar • Pelatihan Guru • Parenting • Training Organisasi • Gathering • Komunitas</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 7: KENAPA 50 TEKNIK -->
+    <section class="py-8 sm:py-16 bg-white">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6">
+            <div class="bg-gradient-to-r from-amber-500 via-brand-orange to-red-500 rounded-2xl sm:rounded-3xl p-5 sm:p-10 text-white shadow-xl">
+                <h2 class="font-heading font-extrabold text-lg xs:text-xl sm:text-3xl text-white mb-2.5">KENAPA 50 TEKNIK?</h2>
+                <p class="text-xs sm:text-base text-amber-100 mb-2.5">Karena satu cara tidak akan selalu cocok untuk semua situasi.</p>
+                <ul class="space-y-1 text-xs sm:text-sm text-white font-medium mb-4">
+                    <li>• Kelas pagi berbeda dengan kelas siang.</li>
+                    <li>• Anak TK berbeda dengan siswa SD.</li>
+                    <li>• Santri TPQ berbeda dengan peserta workshop.</li>
+                    <li>• Kelompok kecil berbeda dengan ratusan peserta seminar.</li>
+                </ul>
+                <div class="bg-white/15 p-3 rounded-xl border border-white/20 text-center">
+                    <p class="text-xs sm:text-base font-bold text-white">Karena itu Anda membutuhkan BANK IDE: 50 PILIHAN TEKNIK</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 8: FORMULA GURAME -->
+    <section class="py-8 sm:py-16 bg-slate-50 border-t border-slate-200">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 text-center">
+            <h2 class="font-heading font-extrabold text-lg xs:text-xl sm:text-3xl text-slate-900 mb-1">FORMULA GURAME</h2>
+            <div class="font-extrabold text-brand-orange text-xs sm:text-sm mb-4">CONNECT → ACTIVATE → FUN → FOCUS → LEARN</div>
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 max-w-4xl mx-auto mb-4 text-center">
+                <div class="bg-white p-2.5 rounded-xl border border-amber-200 font-bold text-xs">CONNECT<div class="font-normal text-[9px] text-slate-500">Hubungan peserta</div></div>
+                <div class="bg-white p-2.5 rounded-xl border border-orange-200 font-bold text-xs">ACTIVATE<div class="font-normal text-[9px] text-slate-500">Bergerak & terlibat</div></div>
+                <div class="bg-white p-2.5 rounded-xl border border-yellow-200 font-bold text-xs">FUN<div class="font-normal text-[9px] text-slate-500">Emosi positif</div></div>
+                <div class="bg-white p-2.5 rounded-xl border border-sky-200 font-bold text-xs">FOCUS<div class="font-normal text-[9px] text-slate-500">Arahkan perhatian</div></div>
+                <div class="bg-white p-2.5 rounded-xl border border-emerald-300 font-bold text-xs col-span-2 sm:col-span-1">LEARN<div class="font-normal text-[9px] text-slate-500">Tujuan belajar</div></div>
+            </div>
+            <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 max-w-md mx-auto text-xs font-bold text-slate-900">FUN-nya dapat. BELAJAR-nya tetap dapat.</div>
+        </div>
+    </section>
+
+    <!-- SECTION 9: MANFAAT -->
+    <section id="manfaat" class="py-8 sm:py-16 bg-slate-900 text-white">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6">
+            <div class="text-center max-w-2xl mx-auto mb-6">
+                <h2 class="font-heading font-extrabold text-lg xs:text-xl sm:text-3xl text-white mb-1.5">APA MANFAATNYA UNTUK ANDA?</h2>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-3xl mx-auto text-xs sm:text-sm">
+                <div class="bg-slate-800 p-3 rounded-xl flex items-center gap-2">✅ Mengurangi pembukaan kelas yang monoton</div>
+                <div class="bg-slate-800 p-3 rounded-xl flex items-center gap-2">✅ Membantu menarik perhatian peserta</div>
+                <div class="bg-slate-800 p-3 rounded-xl flex items-center gap-2">✅ Membuat peserta lebih aktif sejak awal</div>
+                <div class="bg-slate-800 p-3 rounded-xl flex items-center gap-2">✅ Membangun kedekatan guru dengan siswa</div>
+                <div class="bg-slate-800 p-3 rounded-xl flex items-center gap-2">✅ Menghidupkan kelas yang mulai lesu</div>
+                <div class="bg-slate-800 p-3 rounded-xl flex items-center gap-2">✅ Membuat transisi materi lebih menarik</div>
+                <div class="bg-slate-800 p-3 rounded-xl flex items-center gap-2">✅ Memiliki stok ide ice breaking</div>
+                <div class="bg-slate-800 p-3 rounded-xl flex items-center gap-2">✅ Membangun ciri khas mengajar Anda</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 10: TESTIMONI -->
+    <section id="testimoni" class="py-8 sm:py-16 bg-amber-50/50">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6">
+            <div class="text-center max-w-2xl mx-auto mb-6">
+                <h2 class="font-heading font-extrabold text-lg xs:text-xl sm:text-3xl text-slate-900">TESTIMONI PESERTA</h2>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-4xl mx-auto">
+                <div class="bg-white rounded-2xl p-4 shadow-xs border border-amber-200/70"><div class="text-amber-400 text-xs mb-1.5">⭐⭐⭐⭐⭐</div><p class="text-xs sm:text-sm text-slate-700 italic">«“Tekniknya sederhana tetapi langsung bisa dipraktikkan. Anak-anak lebih antusias.”»</p><div class="pt-2 font-bold text-xs text-slate-900">— Guru TK</div></div>
+                <div class="bg-white rounded-2xl p-4 shadow-xs border border-amber-200/70"><div class="text-amber-400 text-xs mb-1.5">⭐⭐⭐⭐⭐</div><p class="text-xs sm:text-sm text-slate-700 italic">«“Punya banyak variasi ice breaking yang bisa disesuaikan dengan pelajaran.”»</p><div class="pt-2 font-bold text-xs text-slate-900">— Guru SD</div></div>
+                <div class="bg-white rounded-2xl p-4 shadow-xs border border-amber-200/70"><div class="text-amber-400 text-xs mb-1.5">⭐⭐⭐⭐⭐</div><p class="text-xs sm:text-sm text-slate-700 italic">«“Bisa dimodifikasi untuk materi TPQ. Anak-anak belajar sambil bergerak.”»</p><div class="pt-2 font-bold text-xs text-slate-900">— Guru TPQ</div></div>
+                <div class="bg-white rounded-2xl p-4 shadow-xs border border-amber-200/70"><div class="text-amber-400 text-xs mb-1.5">⭐⭐⭐⭐⭐</div><p class="text-xs sm:text-sm text-slate-700 italic">«“Sangat terbantu untuk mencairkan suasana dan menaikkan energi peserta training.”»</p><div class="pt-2 font-bold text-xs text-slate-900">— Trainer Pendidikan</div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 11: PROFIL AUTHOR -->
+    <section class="py-8 sm:py-16 bg-white">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6">
+            <div class="bg-gradient-to-br from-amber-50 via-orange-50/60 to-white rounded-2xl sm:rounded-3xl p-4 sm:p-10 border-2 border-amber-200/90 shadow-lg">
+                <div class="grid md:grid-cols-12 gap-5 items-center">
+                    <div class="md:col-span-5 text-center flex justify-center">
+                        <div class="relative">
+                            <div class="absolute inset-0 bg-gradient-to-tr from-brand-orange to-yellow-400 rounded-full blur-md opacity-40"></div>
+                            <div class="relative w-32 h-32 xs:w-36 xs:h-36 sm:w-44 sm:h-44 rounded-full p-1.5 bg-gradient-to-tr from-brand-orange via-amber-500 to-yellow-400 shadow-xl overflow-hidden aspect-square flex items-center justify-center">
+                                <img src="https://kangdedengurame.my.id/wp-content/uploads/2026/08/cropped-WhatsApp-Image-2026-08-27-at-07.54.22-1.jpeg" 
+                                     alt="Kang Deden Gurame - Deden HMS, S.Sos.I., M.Pd." 
+                                     class="w-full h-full rounded-full object-cover object-center aspect-square border-2 border-white block"
+                                     style="border-radius: 9999px;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="md:col-span-7 space-y-1.5 text-center md:text-left">
+                        <span class="text-brand-orange font-bold text-[10px] uppercase">SIAPA KANG DEDEN GURAME?</span>
+                        <h2 class="font-heading font-extrabold text-lg xs:text-xl sm:text-2xl text-slate-900">Deden HMS, S.Sos.I., M.Pd.</h2>
+                        <p class="text-xs sm:text-sm text-slate-600">Trainer dan praktisi pendidikan Founder GURAME (Guru Asyik Menyenangkan), Fun Islamic School, & ACIL.</p>
+                        <div class="font-handwriting text-lg sm:text-xl text-brand-orange font-bold pt-1">« DATANG MENYENANGKAN, PULANG DIRINDUKAN »</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 12: FAQ -->
+    <section class="py-8 sm:py-16 bg-slate-50 border-t border-slate-200/80">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6">
+            <div class="text-center max-w-2xl mx-auto mb-6">
+                <h2 class="font-heading font-extrabold text-lg xs:text-xl sm:text-3xl text-slate-900">PERTANYAAN YANG SERING DITANYAKAN</h2>
+            </div>
+            <div class="space-y-2 text-xs sm:text-sm">
+                <div class="bg-white rounded-xl border border-slate-200 p-3.5"><div class="font-bold text-slate-800 mb-0.5">Apakah hanya untuk guru TK?</div><div class="text-slate-600">Tidak. Teknik dapat dipilih dan dimodifikasi untuk TK, SD, TPQ, maupun kegiatan training.</div></div>
+                <div class="bg-white rounded-xl border border-slate-200 p-3.5"><div class="font-bold text-slate-800 mb-0.5">Apakah harus menggunakan alat yang mahal?</div><div class="text-slate-600">Tidak. Banyak teknik dapat dilakukan dengan alat sederhana atau tanpa alat khusus.</div></div>
+                <div class="bg-white rounded-xl border border-slate-200 p-3.5"><div class="font-bold text-slate-800 mb-0.5">Saya orangnya tidak lucu. Apakah tetap bisa?</div><div class="text-slate-600">Bisa. Yang terpenting adalah teknik, interaksi, ekspresi, dan keterlibatan peserta.</div></div>
+                <div class="bg-white rounded-xl border border-slate-200 p-3.5"><div class="font-bold text-slate-800 mb-0.5">Apakah tekniknya bisa disesuaikan dengan pelajaran?</div><div class="text-slate-600">Bisa. Guru dianjurkan memodifikasi aktivitas agar terhubung dengan materi pembelajaran.</div></div>
+                <div class="bg-white rounded-xl border border-slate-200 p-3.5"><div class="font-bold text-slate-800 mb-0.5">Apakah cocok untuk trainer?</div><div class="text-slate-600">Ya. Cocok sebagai energizer, focusing, audience engagement, dan ice breaking.</div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 14: SECTION PEMBAYARAN VIA SHORTCODE WORDPRESS -->
+    <section id="order-form" class="py-10 sm:py-20 bg-gradient-to-b from-amber-500 via-brand-orange to-red-600 text-white relative overflow-hidden">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 relative z-10">
+            
+            <div class="text-center mb-5">
+                <span class="inline-block bg-yellow-300 text-slate-950 font-black text-[9px] sm:text-xs uppercase px-3 py-0.5 rounded-full mb-2 shadow-sm">
+                    🔥 SAATNYA UPGRADE CARA ANDA MENGAJAR
+                </span>
+                <h2 class="font-heading font-black text-lg xs:text-xl sm:text-3xl text-yellow-300 uppercase leading-tight">
+                    MILIKI 50 TEKNIK MEMBUKA KELAS ANTI NGANTUK
+                </h2>
+                <p class="text-[10px] sm:text-xs text-amber-100 font-semibold mt-0.5">
+                    Untuk Guru TK • Guru SD • Guru TPQ • Trainer
+                </p>
+            </div>
+
+            <!-- PANGGILAN SHORTCODE PEMBAYARAN IPAYMU -->
+            <div class="max-w-md mx-auto my-4">
+                <?php echo do_shortcode('[ipaymu_checkout_box]'); ?>
+            </div>
+
+            <div class="text-center mt-5 space-y-1">
+                <p class="text-[11px] sm:text-xs text-amber-100">Jangan hanya membuat peserta mendengar.</p>
+                <p class="text-xs sm:text-sm text-white font-semibold">Buat mereka penasaran, terlibat, bergerak, berpikir, dan ingin terus belajar.</p>
+                <p class="font-heading font-bold text-xs sm:text-sm text-yellow-300 pt-1">50 TEKNIK MEMBUKA KELAS ANTI NGANTUK</p>
+                <p class="font-handwriting text-lg sm:text-2xl text-yellow-200">« Datang Menyenangkan, Pulang Dirindukan »</p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-950 text-slate-400 py-6 text-[11px] sm:text-xs text-center">
+        <div class="max-w-4xl mx-auto px-4 space-y-1">
+            <p class="font-bold text-slate-300">50 TEKNIK MEMBUKA KELAS ANTI NGANTUK</p>
+            <p>© 2026 GURAME — Guru Asyik Menyenangkan.</p>
+        </div>
+    </footer>
+
+    <!-- STICKY FLOATING CTA BAR (MOBILE) -->
+    <div class="fixed bottom-0 left-0 right-0 z-50 p-2 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-2xl md:hidden flex items-center justify-between gap-2 safe-bottom">
+        <div class="truncate min-w-0">
+            <div class="text-[10px] xs:text-[11px] font-extrabold text-slate-900 leading-tight truncate">50 Teknik Anti Ngantuk</div>
+            <div class="text-[9px] xs:text-[10px] text-brand-orange font-bold">Promo Rp 99.000</div>
+        </div>
+        <div class="flex items-center gap-1.5 shrink-0">
+            <a href="https://wa.me/6285713911142?text=Halo%20CS%20Kang%20Deden%20Gurame,%20saya%20ingin%20tanya%20seputar%2050%20Teknik%20Membuka%20Kelas%20Anti%20Ngantuk." 
+               target="_blank"
+               class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs p-2 rounded-xl border border-slate-200 flex items-center justify-center">
+                <i class="fa-brands fa-whatsapp text-emerald-600 text-sm"></i>
+            </a>
+            <a href="#order-form" class="bg-brand-orange hover:bg-orange-600 text-white font-bold text-[11px] xs:text-xs px-3 py-1.5 rounded-xl flex items-center gap-1 shadow shrink-0 active:scale-95 transition-all">
+                <i class="fa-solid fa-cart-shopping text-[10px]"></i>
+                <span>Beli</span>
+            </a>
+        </div>
+    </div>
+
+    <?php wp_footer(); ?>
+</body>
+</html>
