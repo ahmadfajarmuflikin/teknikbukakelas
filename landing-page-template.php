@@ -121,6 +121,9 @@
             </div>
 
             <div class="flex items-center gap-1.5 sm:gap-3 shrink-0">
+                <a href="#video-demo" class="hidden md:inline-flex items-center gap-1 text-xs lg:text-sm font-bold text-slate-700 hover:text-brand-orange transition-colors px-2 py-1.5">
+                    <i class="fa-solid fa-circle-play text-red-500"></i> Video Demo
+                </a>
                 <a href="#manfaat" class="hidden md:inline-flex items-center gap-1 text-xs lg:text-sm font-bold text-slate-700 hover:text-brand-orange transition-colors px-2 py-1.5">
                     <i class="fa-solid fa-gift text-brand-orange"></i> Manfaat
                 </a>
@@ -411,6 +414,52 @@
                 <div class="bg-emerald-50/70 border border-emerald-200/80 rounded-xl p-2.5 sm:p-3.5 flex items-center gap-2.5 xs:col-span-2 lg:col-span-1"><span class="text-lg sm:text-xl shrink-0">🏆</span><span class="font-bold text-slate-800 text-xs sm:text-sm">Mini challenge individu & kelompok</span></div>
             </div>
             <p class="text-center text-[11px] sm:text-sm text-slate-500 font-medium italic">Semua dapat disesuaikan dengan usia siswa, tujuan pelajaran, dan situasi kelas Anda.</p>
+        </div>
+    </section>
+
+    <!-- SECTION VIDEO DEMO PENGGUNAAN FLASHCARD -->
+    <section id="video-demo" class="py-8 sm:py-16 bg-gradient-to-b from-white via-amber-50/50 to-amber-50/70 border-t border-amber-200/60 relative">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6">
+            <div class="text-center max-w-2xl mx-auto mb-6 sm:mb-10">
+                <span class="inline-flex items-center gap-1.5 bg-red-100 text-red-700 font-extrabold text-[10px] sm:text-xs uppercase px-3 py-1 rounded-full mb-2.5 shadow-xs border border-red-200">
+                    <i class="fa-solid fa-play text-red-600 text-xs"></i> VIDEO DEMO PRAKTIK
+                </span>
+                <h2 class="font-heading font-extrabold text-lg xs:text-xl sm:text-3xl md:text-4xl text-slate-900 leading-tight">
+                    LIHAT CARA PENGGUNAAN <br>
+                    <span class="text-brand-orange underline decoration-amber-400">FLASHCARD ANTI NGANTUK</span>
+                </h2>
+                <p class="text-slate-600 mt-2 text-xs sm:text-base font-medium max-w-xl mx-auto">
+                    Simak cuplikan video singkat di bawah ini untuk melihat betapa mudah, seru, dan praktisnya menggunakan kartu teknik ini di depan kelas:
+                </p>
+            </div>
+
+            <!-- Video Player Container (Vertical Shorts Aspect Ratio Container) -->
+            <div class="max-w-sm sm:max-w-md mx-auto">
+                <div class="relative bg-slate-950 rounded-2xl sm:rounded-3xl p-2 sm:p-3 shadow-2xl border-2 sm:border-4 border-amber-300">
+                    <div class="relative w-full overflow-hidden rounded-xl sm:rounded-2xl bg-black" style="padding-top: 177.77%;">
+                        <iframe 
+                            class="absolute top-0 left-0 w-full h-full rounded-xl sm:rounded-2xl"
+                            src="https://www.youtube-nocookie.com/embed/UOqIGm2l6Hg?rel=0&modestbranding=1" 
+                            title="Demo Cara Penggunaan Flashcard 50 Teknik Membuka Kelas Anti Ngantuk" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+
+                <!-- Video Helper CTA / Note -->
+                <div class="text-center mt-4 sm:mt-5 space-y-2">
+                    <p class="text-xs sm:text-sm text-slate-700 font-semibold flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-lightbulb text-amber-500"></i>
+                        <span>Tinggal ambil kartu, baca instruksi singkatnya, langsung siap dipraktikkan!</span>
+                    </p>
+                    <a href="#order-form" class="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-brand-orange to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs sm:text-sm py-2.5 px-5 rounded-xl shadow-md hover:shadow-lg transition-all active:scale-95">
+                        <i class="fa-solid fa-cart-shopping"></i>
+                        <span>Saya Mau Pesan Flashcard Ini Sekarang</span>
+                    </a>
+                </div>
+            </div>
         </div>
     </section>
 
