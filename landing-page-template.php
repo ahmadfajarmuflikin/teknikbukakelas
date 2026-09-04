@@ -614,15 +614,75 @@
     <!-- SECTION 12: FAQ -->
     <section class="py-8 sm:py-16 bg-slate-50 border-t border-slate-200/80">
         <div class="max-w-3xl mx-auto px-4 sm:px-6">
-            <div class="text-center max-w-2xl mx-auto mb-6">
+            <div class="text-center max-w-2xl mx-auto mb-6 sm:mb-10">
                 <h2 class="font-heading font-extrabold text-lg xs:text-xl sm:text-3xl text-slate-900">PERTANYAAN YANG SERING DITANYAKAN</h2>
             </div>
-            <div class="space-y-2 text-xs sm:text-sm">
-                <div class="bg-white rounded-xl border border-slate-200 p-3.5"><div class="font-bold text-slate-800 mb-0.5">Apakah hanya untuk guru TK?</div><div class="text-slate-600">Tidak. Teknik dapat dipilih dan dimodifikasi untuk TK, SD, TPQ, maupun kegiatan training.</div></div>
-                <div class="bg-white rounded-xl border border-slate-200 p-3.5"><div class="font-bold text-slate-800 mb-0.5">Apakah harus menggunakan alat yang mahal?</div><div class="text-slate-600">Tidak. Banyak teknik dapat dilakukan dengan alat sederhana atau tanpa alat khusus.</div></div>
-                <div class="bg-white rounded-xl border border-slate-200 p-3.5"><div class="font-bold text-slate-800 mb-0.5">Saya orangnya tidak lucu. Apakah tetap bisa?</div><div class="text-slate-600">Bisa. Yang terpenting adalah teknik, interaksi, ekspresi, dan keterlibatan peserta.</div></div>
-                <div class="bg-white rounded-xl border border-slate-200 p-3.5"><div class="font-bold text-slate-800 mb-0.5">Apakah tekniknya bisa disesuaikan dengan pelajaran?</div><div class="text-slate-600">Bisa. Guru dianjurkan memodifikasi aktivitas agar terhubung dengan materi pembelajaran.</div></div>
-                <div class="bg-white rounded-xl border border-slate-200 p-3.5"><div class="font-bold text-slate-800 mb-0.5">Apakah cocok untuk trainer?</div><div class="text-slate-600">Ya. Cocok sebagai energizer, focusing, audience engagement, dan ice breaking.</div></div>
+            
+            <div class="space-y-2 sm:space-y-3">
+                <div class="bg-white rounded-xl sm:rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+                    <button @click="openFaq = (openFaq === 1 ? null : 1)" 
+                            type="button"
+                            class="w-full px-3.5 py-3 sm:px-5 sm:py-4 text-left font-bold text-xs sm:text-sm md:text-base text-slate-800 hover:text-brand-orange bg-white hover:bg-amber-50/70 flex items-center justify-between gap-2.5 transition-colors cursor-pointer select-none">
+                        <span class="text-slate-900 hover:text-brand-orange">Apakah hanya untuk guru TK?</span>
+                        <i class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform duration-200 shrink-0" 
+                           :class="openFaq === 1 ? 'rotate-180 text-brand-orange' : ''"></i>
+                    </button>
+                    <div x-show="openFaq === 1" class="px-3.5 pb-3 sm:px-5 sm:pb-4 text-xs sm:text-sm text-slate-700 leading-relaxed border-t border-slate-100 pt-2 bg-amber-50/20">
+                        Tidak. Teknik dapat dipilih dan dimodifikasi untuk TK, SD, TPQ, maupun kegiatan training.
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl sm:rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+                    <button @click="openFaq = (openFaq === 2 ? null : 2)" 
+                            type="button"
+                            class="w-full px-3.5 py-3 sm:px-5 sm:py-4 text-left font-bold text-xs sm:text-sm md:text-base text-slate-800 hover:text-brand-orange bg-white hover:bg-amber-50/70 flex items-center justify-between gap-2.5 transition-colors cursor-pointer select-none">
+                        <span class="text-slate-900 hover:text-brand-orange">Apakah harus menggunakan alat yang mahal?</span>
+                        <i class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform duration-200 shrink-0" 
+                           :class="openFaq === 2 ? 'rotate-180 text-brand-orange' : ''"></i>
+                    </button>
+                    <div x-show="openFaq === 2" class="px-3.5 pb-3 sm:px-5 sm:pb-4 text-xs sm:text-sm text-slate-700 leading-relaxed border-t border-slate-100 pt-2 bg-amber-50/20">
+                        Tidak. Banyak teknik dapat dilakukan dengan alat sederhana atau tanpa alat khusus.
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl sm:rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+                    <button @click="openFaq = (openFaq === 3 ? null : 3)" 
+                            type="button"
+                            class="w-full px-3.5 py-3 sm:px-5 sm:py-4 text-left font-bold text-xs sm:text-sm md:text-base text-slate-800 hover:text-brand-orange bg-white hover:bg-amber-50/70 flex items-center justify-between gap-2.5 transition-colors cursor-pointer select-none">
+                        <span class="text-slate-900 hover:text-brand-orange">Saya orangnya tidak lucu. Apakah tetap bisa?</span>
+                        <i class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform duration-200 shrink-0" 
+                           :class="openFaq === 3 ? 'rotate-180 text-brand-orange' : ''"></i>
+                    </button>
+                    <div x-show="openFaq === 3" class="px-3.5 pb-3 sm:px-5 sm:pb-4 text-xs sm:text-sm text-slate-700 leading-relaxed border-t border-slate-100 pt-2 bg-amber-50/20">
+                        Bisa. Menjadi menyenangkan tidak berarti harus menjadi pelawak. Yang terpenting adalah teknik, interaksi, ekspresi, dan keterlibatan peserta.
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl sm:rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+                    <button @click="openFaq = (openFaq === 4 ? null : 4)" 
+                            type="button"
+                            class="w-full px-3.5 py-3 sm:px-5 sm:py-4 text-left font-bold text-xs sm:text-sm md:text-base text-slate-800 hover:text-brand-orange bg-white hover:bg-amber-50/70 flex items-center justify-between gap-2.5 transition-colors cursor-pointer select-none">
+                        <span class="text-slate-900 hover:text-brand-orange">Apakah tekniknya bisa disesuaikan dengan pelajaran?</span>
+                        <i class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform duration-200 shrink-0" 
+                           :class="openFaq === 4 ? 'rotate-180 text-brand-orange' : ''"></i>
+                    </button>
+                    <div x-show="openFaq === 4" class="px-3.5 pb-3 sm:px-5 sm:pb-4 text-xs sm:text-sm text-slate-700 leading-relaxed border-t border-slate-100 pt-2 bg-amber-50/20">
+                        Bisa. Justru guru dianjurkan memodifikasi aktivitas agar terhubung dengan materi pembelajaran.
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl sm:rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+                    <button @click="openFaq = (openFaq === 5 ? null : 5)" 
+                            type="button"
+                            class="w-full px-3.5 py-3 sm:px-5 sm:py-4 text-left font-bold text-xs sm:text-sm md:text-base text-slate-800 hover:text-brand-orange bg-white hover:bg-amber-50/70 flex items-center justify-between gap-2.5 transition-colors cursor-pointer select-none">
+                        <span class="text-slate-900 hover:text-brand-orange">Apakah cocok untuk trainer?</span>
+                        <i class="fa-solid fa-chevron-down text-xs text-slate-400 transition-transform duration-200 shrink-0" 
+                           :class="openFaq === 5 ? 'rotate-180 text-brand-orange' : ''"></i>
+                    </button>
+                    <div x-show="openFaq === 5" class="px-3.5 pb-3 sm:px-5 sm:pb-4 text-xs sm:text-sm text-slate-700 leading-relaxed border-t border-slate-100 pt-2 bg-amber-50/20">
+                        Ya. Cocok sebagai energizer, focusing, audience engagement, dan ice breaking.
+                    </div>
+                </div>
             </div>
         </div>
     </section>
