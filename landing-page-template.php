@@ -620,8 +620,39 @@
         </div>
     </section>
 
-    <!-- SECTION 12: FAQ -->
-    <section class="py-8 sm:py-16 bg-slate-50 border-t border-slate-200/80">
+    <!-- SECTION 14: SECTION PEMBAYARAN VIA SHORTCODE WORDPRESS -->
+    <section id="order-form" class="py-10 sm:py-20 bg-gradient-to-b from-amber-500 via-brand-orange to-red-600 text-white relative overflow-hidden">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 relative z-10">
+            
+            <div class="text-center mb-5">
+                <span class="inline-block bg-yellow-300 text-slate-950 font-black text-[9px] sm:text-xs uppercase px-3 py-0.5 rounded-full mb-2 shadow-sm">
+                    🔥 SAATNYA UPGRADE CARA ANDA MENGAJAR
+                </span>
+                <h2 class="font-heading font-black text-lg xs:text-xl sm:text-3xl text-yellow-300 uppercase leading-tight">
+                    MILIKI 50 TEKNIK MEMBUKA KELAS ANTI NGANTUK
+                </h2>
+                <p class="text-[10px] sm:text-xs text-amber-100 font-semibold mt-0.5">
+                    Untuk Guru TK • Guru SD • Guru TPQ • Trainer
+                </p>
+            </div>
+
+            <!-- PANGGILAN SHORTCODE PEMBAYARAN IPAYMU -->
+            <div class="max-w-md mx-auto my-4">
+                <?php echo do_shortcode('[ipaymu_checkout_box]'); ?>
+            </div>
+
+            <div class="text-center mt-5 space-y-1">
+                <p class="text-[11px] sm:text-xs text-amber-100">Jangan hanya membuat peserta mendengar.</p>
+                <p class="text-xs sm:text-sm text-white font-semibold">Buat mereka penasaran, terlibat, bergerak, berpikir, dan ingin terus belajar.</p>
+                <p class="font-heading font-bold text-xs sm:text-sm text-yellow-300 pt-1">50 TEKNIK MEMBUKA KELAS ANTI NGANTUK</p>
+                <p class="font-handwriting text-lg sm:text-2xl text-yellow-200">« Datang Menyenangkan, Pulang Dirindukan »</p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- SECTION: FAQ (PERTANYAAN YANG SERING DITANYAKAN) -->
+    <section id="faq" class="py-8 sm:py-16 bg-slate-50 border-t border-slate-200/80">
         <div class="max-w-3xl mx-auto px-4 sm:px-6">
             <div class="text-center max-w-2xl mx-auto mb-6 sm:mb-10">
                 <h2 class="font-heading font-extrabold text-lg xs:text-xl sm:text-3xl text-slate-900">PERTANYAAN YANG SERING DITANYAKAN</h2>
@@ -693,37 +724,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
-
-    <!-- SECTION 14: SECTION PEMBAYARAN VIA SHORTCODE WORDPRESS -->
-    <section id="order-form" class="py-10 sm:py-20 bg-gradient-to-b from-amber-500 via-brand-orange to-red-600 text-white relative overflow-hidden">
-        <div class="max-w-3xl mx-auto px-4 sm:px-6 relative z-10">
-            
-            <div class="text-center mb-5">
-                <span class="inline-block bg-yellow-300 text-slate-950 font-black text-[9px] sm:text-xs uppercase px-3 py-0.5 rounded-full mb-2 shadow-sm">
-                    🔥 SAATNYA UPGRADE CARA ANDA MENGAJAR
-                </span>
-                <h2 class="font-heading font-black text-lg xs:text-xl sm:text-3xl text-yellow-300 uppercase leading-tight">
-                    MILIKI 50 TEKNIK MEMBUKA KELAS ANTI NGANTUK
-                </h2>
-                <p class="text-[10px] sm:text-xs text-amber-100 font-semibold mt-0.5">
-                    Untuk Guru TK • Guru SD • Guru TPQ • Trainer
-                </p>
-            </div>
-
-            <!-- PANGGILAN SHORTCODE PEMBAYARAN IPAYMU -->
-            <div class="max-w-md mx-auto my-4">
-                <?php echo do_shortcode('[ipaymu_checkout_box]'); ?>
-            </div>
-
-            <div class="text-center mt-5 space-y-1">
-                <p class="text-[11px] sm:text-xs text-amber-100">Jangan hanya membuat peserta mendengar.</p>
-                <p class="text-xs sm:text-sm text-white font-semibold">Buat mereka penasaran, terlibat, bergerak, berpikir, dan ingin terus belajar.</p>
-                <p class="font-heading font-bold text-xs sm:text-sm text-yellow-300 pt-1">50 TEKNIK MEMBUKA KELAS ANTI NGANTUK</p>
-                <p class="font-handwriting text-lg sm:text-2xl text-yellow-200">« Datang Menyenangkan, Pulang Dirindukan »</p>
-            </div>
-
         </div>
     </section>
 

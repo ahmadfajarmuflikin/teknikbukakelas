@@ -989,21 +989,34 @@ class IPaymu_Custom_Gateway {
                 
                 <!-- Card Header -->
                 <div style="text-align: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px; margin-bottom: 18px;">
-                    <span style="display: inline-block; background: #fffbeb; color: #d97706; border: 1px solid #fef3c7; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; padding: 3px 12px; border-radius: 20px; margin-bottom: 6px;">
-                        <?php echo ($type === 'physical') ? '📦 FORMULIR PEMESANAN FLASHCARD FISIK' : '⚡ FORMULIR PEMESANAN INSTAN'; ?>
-                    </span>
-                    
-                    <div style="display: flex; align-items: baseline; justify-content: center; gap: 8px; margin-top: 4px;">
-                        <?php if ($normal_price > $price) : ?>
-                            <span style="font-size: 13px; color: #94a3b8; text-decoration: line-through;">Rp <?php echo number_format($normal_price, 0, ',', '.'); ?></span>
-                        <?php endif; ?>
-                        <span style="font-size: 28px; font-weight: 900; color: #0f172a; letter-spacing: -0.5px;">Rp <?php echo number_format($price, 0, ',', '.'); ?></span>
-                        <span style="font-size: 11px; font-weight: 600; color: #64748b;"><?php echo ($type === 'physical') ? '/ flashcard fisik' : '/ akses instan'; ?></span>
+                    <div style="margin-bottom: 10px;">
+                        <span style="display: inline-block; background: #fffbeb; color: #b45309; border: 1px solid #fde68a; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; padding: 4px 14px; border-radius: 20px;">
+                            <?php echo ($type === 'physical') ? '📦 FORMULIR PEMESANAN FLASHCARD FISIK' : '⚡ FORMULIR PEMESANAN INSTAN'; ?>
+                        </span>
                     </div>
                     
-                    <?php if ($normal_price > $price) : ?>
-                        <p style="font-size: 11px; color: #16a34a; font-weight: 700; margin: 4px 0 0;">🔥 Hemat Rp <?php echo number_format($normal_price - $price, 0, ',', '.'); ?> khusus pemesanan hari ini</p>
-                    <?php endif; ?>
+                    <div style="background: #fefce8; border: 1px solid #fef08a; border-radius: 16px; padding: 12px 14px; text-align: center; margin: 0 auto; max-width: 380px;">
+                        <?php if ($normal_price > $price) : ?>
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap;">
+                                <span style="font-size: 13px; color: #94a3b8; text-decoration: line-through; font-weight: 600;">Rp <?php echo number_format($normal_price, 0, ',', '.'); ?></span>
+                                <span style="background: #ef4444; color: #ffffff; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 12px;">
+                                    Hemat Rp <?php echo number_format($normal_price - $price, 0, ',', '.'); ?>
+                                </span>
+                            </div>
+                        <?php endif; ?>
+
+                        <div style="display: flex; align-items: baseline; justify-content: center; gap: 4px;">
+                            <span style="font-size: 14px; font-weight: 800; color: #1e293b;">Rp</span>
+                            <span style="font-size: 32px; font-weight: 900; color: #0f172a; letter-spacing: -0.5px; line-height: 1;"><?php echo number_format($price, 0, ',', '.'); ?></span>
+                            <span style="font-size: 11px; font-weight: 700; color: #64748b; margin-left: 2px;"><?php echo ($type === 'physical') ? '/ flashcard fisik' : '/ akses instan'; ?></span>
+                        </div>
+
+                        <?php if ($normal_price > $price) : ?>
+                            <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed #fde047; font-size: 11px; color: #15803d; font-weight: 700;">
+                                🔥 Hemat Rp <?php echo number_format($normal_price - $price, 0, ',', '.'); ?> khusus pemesanan hari ini
+                            </div>
+                        <?php endif; ?>
+                    </div>
                 </div>
 
                 <form id="<?php echo esc_attr($form_id); ?>" onsubmit="submitDynamicOrder(event, '<?php echo esc_attr($form_id); ?>', '<?php echo esc_attr($type); ?>', '<?php echo esc_attr($checkout_mode); ?>', '<?php echo esc_attr($clean_cs); ?>', <?php echo $price; ?>, '<?php echo esc_js($product_name); ?>')" style="margin: 0;">
