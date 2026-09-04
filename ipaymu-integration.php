@@ -943,9 +943,49 @@ class IPaymu_Custom_Gateway {
 
         ob_start();
         ?>
-        <div class="ipaymu-checkout-wrapper" style="max-width: 520px; margin: 0 auto; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; box-sizing: border-box;">
+        <style>
+            .ipaymu-checkout-wrapper {
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .ipaymu-checkout-wrapper * {
+                box-sizing: border-box;
+            }
+            .ipaymu-form-grid-2 {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            .ipaymu-form-grid-postal {
+                display: grid;
+                grid-template-columns: 1fr 2fr;
+                gap: 10px;
+            }
+            @media (max-width: 480px) {
+                .ipaymu-checkout-card {
+                    padding: 18px 14px !important;
+                    border-radius: 18px !important;
+                }
+                .ipaymu-form-grid-2 {
+                    grid-template-columns: 1fr !important;
+                    gap: 8px !important;
+                }
+                .ipaymu-form-grid-postal {
+                    grid-template-columns: 1fr !important;
+                    gap: 8px !important;
+                }
+                .ipaymu-price-display {
+                    font-size: 24px !important;
+                }
+                .btn-submit-order {
+                    font-size: 13px !important;
+                    padding: 12px 10px !important;
+                }
+            }
+        </style>
+        <div class="ipaymu-checkout-wrapper" style="max-width: 520px; margin: 0 auto; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;">
             
-            <div style="background: #ffffff; color: #1e293b; border-radius: 24px; padding: 24px 22px; box-shadow: 0 20px 40px -15px rgba(0,0,0,0.12), 0 0 1px 1px rgba(0,0,0,0.05); border: 2px solid #fbbf24;">
+            <div class="ipaymu-checkout-card" style="background: #ffffff; color: #1e293b; border-radius: 24px; padding: 24px 22px; box-shadow: 0 20px 40px -15px rgba(0,0,0,0.12), 0 0 1px 1px rgba(0,0,0,0.05); border: 2px solid #fbbf24;">
                 
                 <!-- Card Header -->
                 <div style="text-align: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px; margin-bottom: 18px;">
@@ -980,7 +1020,7 @@ class IPaymu_Custom_Gateway {
                             <input type="text" name="cust_name" placeholder="Contoh: Budi Santoso, S.Pd." required style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 13px; background: #f8fafc; box-sizing: border-box; outline: none;">
                         </div>
 
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left;">
+                        <div class="ipaymu-form-grid-2" style="text-align: left;">
                             <div>
                                 <label style="display: block; font-size: 11px; font-weight: 700; color: #334155; margin-bottom: 4px;">No. WhatsApp <span style="color:#ef4444;">*</span></label>
                                 <input type="tel" name="cust_phone" placeholder="08xxxxxxxxxx" required style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 13px; background: #f8fafc; box-sizing: border-box; outline: none;">
@@ -1005,7 +1045,7 @@ class IPaymu_Custom_Gateway {
                             <textarea name="ship_address" rows="2" placeholder="Contoh: Jl. Merdeka No. 45, RT 02/RW 04, Kel. Sukamaju" required style="width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 13px; background: #f8fafc; box-sizing: border-box; outline: none; resize: vertical;"></textarea>
                         </div>
 
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; text-align: left;">
+                        <div class="ipaymu-form-grid-2" style="margin-bottom: 10px; text-align: left;">
                             <div>
                                 <label style="display: block; font-size: 11px; font-weight: 700; color: #334155; margin-bottom: 4px;">Kecamatan <span style="color:#ef4444;">*</span></label>
                                 <input type="text" name="ship_subdistrict" placeholder="Contoh: Cilodong" required style="width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 13px; background: #f8fafc; box-sizing: border-box; outline: none;">
@@ -1016,7 +1056,7 @@ class IPaymu_Custom_Gateway {
                             </div>
                         </div>
 
-                        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 10px; text-align: left;">
+                        <div class="ipaymu-form-grid-postal" style="text-align: left;">
                             <div>
                                 <label style="display: block; font-size: 11px; font-weight: 700; color: #334155; margin-bottom: 4px;">Kode Pos</label>
                                 <input type="text" name="ship_postal" placeholder="16413" style="width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 13px; background: #f8fafc; box-sizing: border-box; outline: none;">
