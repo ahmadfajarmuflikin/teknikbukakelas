@@ -23,6 +23,7 @@ class IPaymu_Custom_Gateway {
 
         // Daftarkan Menu di Sidebar WordPress
         add_action('admin_menu', [$this, 'register_admin_menus']);
+        add_action('admin_init', [$this, 'create_orders_database_table']);
         add_action('admin_init', [$this, 'register_plugin_settings']);
         add_action('admin_init', [$this, 'handle_admin_actions']);
 

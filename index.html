@@ -1119,6 +1119,9 @@
             <script>
             function handleDirectWaOrder(e) {
                 e.preventDefault();
+                const btn = e.target.querySelector('button[type="submit"]');
+                const originalBtnText = btn.innerHTML;
+
                 const name = document.getElementById('wa_cust_name').value.trim();
                 const phone = document.getElementById('wa_cust_phone').value.trim();
                 const email = document.getElementById('wa_cust_email').value.trim() || '-';
@@ -1126,9 +1129,57 @@
                 const subdistrict = document.getElementById('wa_cust_subdistrict').value.trim();
                 const city = document.getElementById('wa_cust_city').value.trim();
 
-                const waMessage = `Halo Kang Deden Gurame / CS,%0A%0ASaya ingin memesan buku *50 TEKNIK MEMBUKA KELAS ANTI NGANTUK* dengan *Harga Promo Hari Ini Rp 80.000* (Hemat Rp 20.000):%0A%0A👤 *Nama Penerima:* ${encodeURIComponent(name)}%0A📱 *No. WhatsApp:* ${encodeURIComponent(phone)}%0A📧 *Email:* ${encodeURIComponent(email)}%0A🏠 *Alamat Lengkap:* ${encodeURIComponent(address)}%0A📍 *Kecamatan:* ${encodeURIComponent(subdistrict)}%0A🏙️ *Kota/Kab:* ${encodeURIComponent(city)}%0A💰 *Total Tagihan:* Rp 80.000%0A%0AMohon nomor rekening/info pembayaran dan estimasi pengirimannya ya. Terima kasih!`;
+                if(!name || !phone || !address || !subdistrict || !city) {
+                    alert('Mohon lengkapi seluruh kolom formulir pengiriman.');
+                    return;
+                }
 
-                window.open(`https://wa.me/6285713911142?text=${waMessage}`, '_blank');
+                btn.innerHTML = '⏳ Menyimpan Pesanan & Menghubungkan ke WA...';
+                btn.disabled = true;
+
+                // Siapkan data untuk dikirim ke WordPress Database
+                const formData = new URLSearchParams();
+                formData.append('action', 'ipaymu_submit_order');
+                formData.append('product_type', 'physical');
+                formData.append('name', name);
+                formData.append('phone', phone);
+                formData.append('email', email);
+                formData.append('address', address);
+                formData.append('subdistrict', subdistrict);
+                formData.append('city', city);
+                formData.append('checkout_mode', 'whatsapp');
+
+                // Tentukan endpoint backend
+                const ajaxUrl = (window.location.hostname && window.location.hostname !== '')
+                    ? '/wp-admin/admin-ajax.php'
+                    : 'https://kangdedengurame.my.id/wp-admin/admin-ajax.php';
+
+                fetch(ajaxUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalBtnText;
+
+                    const refCode = (data && data.data && data.data.reference_id) ? data.data.reference_id : '';
+                    const refText = refCode ? ("%0A🔖 *No. Pesanan:* " + refCode) : "";
+
+                    const waMessage = `Halo Kang Deden Gurame / CS,%0A%0ASaya ingin memesan buku *50 TEKNIK MEMBUKA KELAS ANTI NGANTUK* dengan *Harga Promo Hari Ini Rp 80.000* (Hemat Rp 20.000):%0A${refText}%0A👤 *Nama Penerima:* ${encodeURIComponent(name)}%0A📱 *No. WhatsApp:* ${encodeURIComponent(phone)}%0A📧 *Email:* ${encodeURIComponent(email)}%0A🏠 *Alamat Lengkap:* ${encodeURIComponent(address)}%0A📍 *Kecamatan:* ${encodeURIComponent(subdistrict)}%0A🏙️ *Kota/Kab:* ${encodeURIComponent(city)}%0A💰 *Total Tagihan:* Rp 80.000%0A%0AMohon info nomor rekening/pembayaran dan konfirmasi pengirimannya ya. Terima kasih!`;
+
+                    window.open(`https://wa.me/6285713911142?text=${waMessage}`, '_blank');
+                })
+                .catch(err => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalBtnText;
+                    console.warn('Backend AJAX sync note:', err);
+
+                    const waMessage = `Halo Kang Deden Gurame / CS,%0A%0ASaya ingin memesan buku *50 TEKNIK MEMBUKA KELAS ANTI NGANTUK* dengan *Harga Promo Hari Ini Rp 80.000*:%0A%0A👤 *Nama Penerima:* ${encodeURIComponent(name)}%0A📱 *No. WhatsApp:* ${encodeURIComponent(phone)}%0A📧 *Email:* ${encodeURIComponent(email)}%0A🏠 *Alamat Lengkap:* ${encodeURIComponent(address)}%0A📍 *Kecamatan:* ${encodeURIComponent(subdistrict)}%0A🏙️ *Kota/Kab:* ${encodeURIComponent(city)}%0A💰 *Total Tagihan:* Rp 80.000`;
+
+                    window.open(`https://wa.me/6285713911142?text=${waMessage}`, '_blank');
+                });
             }
             </script>
 
