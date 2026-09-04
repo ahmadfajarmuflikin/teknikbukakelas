@@ -569,14 +569,14 @@
                 </p>
             </div>
 
-            <!-- Video Player Container (Vertical Shorts Aspect Ratio Container with High-Res Cover & 1-Click Play) -->
+            <!-- Video Player Container (Vertical Shorts Aspect Ratio Container with YouTube IFrame API Instant Play) -->
             <div class="max-w-sm sm:max-w-md mx-auto" id="video-demo-container-standalone">
                 <div class="relative bg-slate-950 rounded-2xl sm:rounded-3xl p-2 sm:p-3 shadow-2xl border-2 sm:border-4 border-amber-300">
                     <div class="relative w-full overflow-hidden rounded-xl sm:rounded-2xl bg-black shadow-inner" style="padding-top: 177.77%;">
                         
                         <!-- High Quality Custom Thumbnail Cover (Sebelum diplay) -->
                         <div id="video-cover-standalone" 
-                             onclick="playShortsVideoStandalone()" 
+                             onclick="triggerYouTubePlayStandalone()" 
                              class="absolute inset-0 w-full h-full cursor-pointer group select-none z-10 transition-opacity duration-300">
                             
                             <!-- High Resolution Vertical HD YouTube Shorts Thumbnail (720x1280 - Full Frame 9:16) -->
@@ -607,20 +607,35 @@
                             </div>
                         </div>
 
-                        <!-- Target Video Iframe Container -->
-                        <div id="video-iframe-holder-standalone" class="absolute inset-0 w-full h-full hidden"></div>
+                        <!-- Embedded YouTube Iframe with JS API Ready -->
+                        <iframe 
+                            id="youtube-player-iframe-standalone"
+                            class="absolute top-0 left-0 w-full h-full rounded-xl sm:rounded-2xl"
+                            src="https://www.youtube.com/embed/UOqIGm2l6Hg?enablejsapi=1&autoplay=0&mute=0&rel=0&modestbranding=1&playsinline=1" 
+                            title="Demo Cara Penggunaan Flashcard 50 Teknik Membuka Kelas Anti Ngantuk" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                            allowfullscreen>
+                        </iframe>
 
                     </div>
                 </div>
 
                 <script>
-                function playShortsVideoStandalone() {
+                function triggerYouTubePlayStandalone() {
                     var cover = document.getElementById('video-cover-standalone');
-                    var holder = document.getElementById('video-iframe-holder-standalone');
-                    if(cover && holder) {
+                    var iframe = document.getElementById('youtube-player-iframe-standalone');
+                    
+                    if (cover) {
                         cover.style.display = 'none';
-                        holder.classList.remove('hidden');
-                        holder.innerHTML = '<iframe class="w-full h-full rounded-xl sm:rounded-2xl" src="https://www.youtube.com/embed/UOqIGm2l6Hg?autoplay=1&mute=0&rel=0&modestbranding=1&playsinline=1" title="Demo Cara Penggunaan Flashcard 50 Teknik Membuka Kelas Anti Ngantuk" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>';
+                    }
+                    if (iframe && iframe.contentWindow) {
+                        // Send YouTube API playVideo command immediately
+                        iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                        // Fallback URL update if API postMessage is restricted
+                        if (!iframe.src.includes('autoplay=1')) {
+                            iframe.src = "https://www.youtube.com/embed/UOqIGm2l6Hg?autoplay=1&mute=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1";
+                        }
                     }
                 }
                 </script>
