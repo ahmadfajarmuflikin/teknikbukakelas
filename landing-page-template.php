@@ -233,7 +233,7 @@
                             <div class="flex items-baseline gap-1 mt-0.5">
                                 <span class="text-xs font-bold text-slate-600">Rp</span>
                                 <span class="font-heading font-black text-2xl xs:text-3xl sm:text-4xl text-slate-900"><?php echo number_format($display_price, 0, ',', '.'); ?></span>
-                                <span class="text-[10px] sm:text-xs text-slate-500 font-medium">/ buku fisik</span>
+                                <span class="text-[10px] sm:text-xs text-slate-500 font-medium">/ flashcard fisik</span>
                             </div>
                         </div>
 

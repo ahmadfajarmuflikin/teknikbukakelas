@@ -210,7 +210,7 @@ class IPaymu_Custom_Gateway {
                     </label>
                     <select name="ipaymu_custom_product_type" style="width: 100%; padding: 7px 10px; border-radius: 6px; border: 1px solid #cbd5e1;">
                         <option value="" <?php selected($custom_type, ''); ?>>-- Ikuti Pengaturan Global (<?php echo esc_html($global_type); ?>) --</option>
-                        <option value="physical" <?php selected($custom_type, 'physical'); ?>>📦 Produk Fisik (Buku Fisik & Butuh Alamat)</option>
+                        <option value="physical" <?php selected($custom_type, 'physical'); ?>>📦 Produk Fisik (Flashcard Fisik & Butuh Alamat)</option>
                         <option value="digital" <?php selected($custom_type, 'digital'); ?>>⚡ Produk Digital (Tanpa Alamat)</option>
                     </select>
                 </div>
@@ -990,7 +990,7 @@ class IPaymu_Custom_Gateway {
                 <!-- Card Header -->
                 <div style="text-align: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px; margin-bottom: 18px;">
                     <span style="display: inline-block; background: #fffbeb; color: #d97706; border: 1px solid #fef3c7; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; padding: 3px 12px; border-radius: 20px; margin-bottom: 6px;">
-                        <?php echo ($type === 'physical') ? '📦 FORMULIR PEMESANAN PRODUK FISIK' : '⚡ FORMULIR PEMESANAN INSTAN'; ?>
+                        <?php echo ($type === 'physical') ? '📦 FORMULIR PEMESANAN FLASHCARD FISIK' : '⚡ FORMULIR PEMESANAN INSTAN'; ?>
                     </span>
                     
                     <div style="display: flex; align-items: baseline; justify-content: center; gap: 8px; margin-top: 4px;">
@@ -998,7 +998,7 @@ class IPaymu_Custom_Gateway {
                             <span style="font-size: 13px; color: #94a3b8; text-decoration: line-through;">Rp <?php echo number_format($normal_price, 0, ',', '.'); ?></span>
                         <?php endif; ?>
                         <span style="font-size: 28px; font-weight: 900; color: #0f172a; letter-spacing: -0.5px;">Rp <?php echo number_format($price, 0, ',', '.'); ?></span>
-                        <span style="font-size: 11px; font-weight: 600; color: #64748b;"><?php echo ($type === 'physical') ? '/ buku fisik' : '/ akses instan'; ?></span>
+                        <span style="font-size: 11px; font-weight: 600; color: #64748b;"><?php echo ($type === 'physical') ? '/ flashcard fisik' : '/ akses instan'; ?></span>
                     </div>
                     
                     <?php if ($normal_price > $price) : ?>
@@ -1017,7 +1017,7 @@ class IPaymu_Custom_Gateway {
 
                         <div style="margin-bottom: 10px; text-align: left;">
                             <label style="display: block; font-size: 11px; font-weight: 700; color: #334155; margin-bottom: 4px;">Nama Lengkap Penerima <span style="color:#ef4444;">*</span></label>
-                            <input type="text" name="cust_name" placeholder="Contoh: Budi Santoso, S.Pd." required style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 13px; background: #f8fafc; box-sizing: border-box; outline: none;">
+                            <input type="text" name="cust_name" placeholder="Contoh: Ust. Ahmad Fauzi, S.Pd.I." required style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 13px; background: #f8fafc; box-sizing: border-box; outline: none;">
                         </div>
 
                         <div class="ipaymu-form-grid-2" style="text-align: left;">
