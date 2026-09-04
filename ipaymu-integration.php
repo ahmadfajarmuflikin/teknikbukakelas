@@ -889,9 +889,15 @@ class IPaymu_Custom_Gateway {
      */
     public function render_checkout_box_shortcode($atts) {
         global $post;
-        $post_id = is_object($post) ? $post->ID : 0;
+        $post_id = get_the_ID();
+        if (!$post_id && is_object($post) && isset($post->ID)) {
+            $post_id = $post->ID;
+        }
+        if (!$post_id && function_exists('get_queried_object_id')) {
+            $post_id = get_queried_object_id();
+        }
 
-        // Ambil nilai khusus per halaman (post meta) jika ada
+        // Ambil nilai khusus per halaman (post meta) dari Metabox jika ada
         $meta_price  = $post_id ? get_post_meta($post_id, '_ipaymu_custom_price', true) : '';
         $meta_normal = $post_id ? get_post_meta($post_id, '_ipaymu_custom_normal_price', true) : '';
         $meta_name   = $post_id ? get_post_meta($post_id, '_ipaymu_custom_product_name', true) : '';
@@ -905,13 +911,19 @@ class IPaymu_Custom_Gateway {
         $global_type   = get_option('ipaymu_product_type', 'physical');
         $global_cs     = get_option('ipaymu_cs_whatsapp', '085713911142');
 
-        // Parse shortcode attributes (Shortcode > Page Meta > Global Option)
+        // Tentukan nilai prioritas: Shortcode Attr > Page Meta Box > Global Setting
+        $default_price  = (!empty($meta_price) && is_numeric($meta_price) && (int)$meta_price > 0) ? (int)$meta_price : $global_price;
+        $default_normal = (!empty($meta_normal) && is_numeric($meta_normal) && (int)$meta_normal > 0) ? (int)$meta_normal : $global_normal;
+        $default_name   = !empty($meta_name) ? $meta_name : $global_name;
+        $default_type   = !empty($meta_type) ? $meta_type : $global_type;
+        $default_cs     = !empty($meta_cs) ? $meta_cs : $global_cs;
+
         $args = shortcode_atts([
-            'price'        => !empty($meta_price) ? $meta_price : $global_price,
-            'normal_price' => !empty($meta_normal) ? $meta_normal : $global_normal,
-            'product'      => !empty($meta_name) ? $meta_name : $global_name,
-            'type'         => !empty($meta_type) ? $meta_type : $global_type,
-            'cs'           => !empty($meta_cs) ? $meta_cs : $global_cs
+            'price'        => $default_price,
+            'normal_price' => $default_normal,
+            'product'      => $default_name,
+            'type'         => $default_type,
+            'cs'           => $default_cs
         ], $atts);
 
         $price         = (int) $args['price'];
