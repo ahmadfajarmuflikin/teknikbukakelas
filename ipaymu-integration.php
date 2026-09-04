@@ -136,6 +136,13 @@ class IPaymu_Custom_Gateway {
                 }
             }
         }
+
+        // Auto-perbaiki jika di database wp_options masih tersimpan 99000 dari versi awal
+        $stored_price = get_option('ipaymu_product_price');
+        if ($stored_price === '99000' || $stored_price === 99000) {
+            update_option('ipaymu_product_price', '80000');
+            update_option('ipaymu_normal_price', '100000');
+        }
     }
 
     /**
@@ -250,12 +257,14 @@ class IPaymu_Custom_Gateway {
     }
 
     /**
-     * Handle Update No Resi dari Admin
+     * Handle Action dari Admin (Update Resi, Hapus Satuan, Hapus Masal)
      */
     public function handle_admin_actions() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'ipaymu_orders';
+
+        // 1. Update Resi & Status Pengiriman / Pembayaran
         if (isset($_POST['ipaymu_update_shipping']) && check_admin_referer('ipaymu_update_shipping_action')) {
-            global $wpdb;
-            $table_name = $wpdb->prefix . 'ipaymu_orders';
             $order_id   = intval($_POST['order_id']);
             $resi       = sanitize_text_field($_POST['tracking_number']);
             $courier    = sanitize_text_field($_POST['shipping_courier']);
@@ -281,6 +290,27 @@ class IPaymu_Custom_Gateway {
 
             wp_redirect(admin_url('admin.php?page=ipaymu-orders-list&updated=1'));
             exit;
+        }
+
+        // 2. Hapus Satu Pesanan (Single Delete via Link / Form)
+        if (isset($_GET['action']) && $_GET['action'] === 'delete_order' && isset($_GET['order_id'])) {
+            $order_id = intval($_GET['order_id']);
+            check_admin_referer('ipaymu_delete_order_' . $order_id);
+
+            $wpdb->delete($table_name, ['id' => $order_id]);
+            wp_redirect(admin_url('admin.php?page=ipaymu-orders-list&deleted=1'));
+            exit;
+        }
+
+        // 3. Hapus Banyak Pesanan Sekaligus (Bulk Delete)
+        if (isset($_POST['ipaymu_bulk_action']) && $_POST['ipaymu_bulk_action'] === 'bulk_delete' && check_admin_referer('ipaymu_bulk_orders_action')) {
+            if (!empty($_POST['selected_orders']) && is_array($_POST['selected_orders'])) {
+                $ids = array_map('intval', $_POST['selected_orders']);
+                $ids_placeholder = implode(',', array_fill(0, count($ids), '%d'));
+                $wpdb->query($wpdb->prepare("DELETE FROM $table_name WHERE id IN ($ids_placeholder)", $ids));
+                wp_redirect(admin_url('admin.php?page=ipaymu-orders-list&deleted=' . count($ids)));
+                exit;
+            }
         }
     }
 
@@ -345,7 +375,7 @@ class IPaymu_Custom_Gateway {
     }
 
     /**
-     * Halaman Dashboard: Data Pesanan di WP-Admin
+     * Halaman Dashboard: Data Pesanan di WP-Admin (dengan Filter & Fitur Hapus)
      */
     public function render_orders_list_page() {
         global $wpdb;
@@ -353,24 +383,76 @@ class IPaymu_Custom_Gateway {
 
         $this->create_orders_database_table();
 
-        $orders = $wpdb->get_results("SELECT * FROM $table_name ORDER BY id DESC LIMIT 100");
+        // Parameter Filter & Pencarian
+        $search_query   = isset($_GET['s']) ? sanitize_text_field(trim($_GET['s'])) : '';
+        $filter_status  = isset($_GET['filter_status']) ? sanitize_text_field($_GET['filter_status']) : '';
+        $filter_type    = isset($_GET['filter_type']) ? sanitize_text_field($_GET['filter_type']) : '';
+        $filter_shipping= isset($_GET['filter_shipping']) ? sanitize_text_field($_GET['filter_shipping']) : '';
+
+        // Bangun Query WHERE Dinamis
+        $where_clauses = ["1=1"];
+        $query_params  = [];
+
+        if (!empty($search_query)) {
+            $like = '%' . $wpdb->esc_like($search_query) . '%';
+            $where_clauses[] = "(customer_name LIKE %s OR customer_phone LIKE %s OR customer_email LIKE %s OR shipping_address LIKE %s OR shipping_city LIKE %s OR shipping_subdistrict LIKE %s OR reference_id LIKE %s OR tracking_number LIKE %s OR product_name LIKE %s)";
+            for ($i = 0; $i < 9; $i++) {
+                $query_params[] = $like;
+            }
+        }
+
+        if (!empty($filter_status)) {
+            if ($filter_status === 'PAID') {
+                $where_clauses[] = "status IN ('PAID', 'berhasil', 'SUCCESS', 'LUNAS')";
+            } elseif ($filter_status === 'PENDING') {
+                $where_clauses[] = "status NOT IN ('PAID', 'berhasil', 'SUCCESS', 'LUNAS')";
+            }
+        }
+
+        if (!empty($filter_type)) {
+            $where_clauses[] = "product_type = %s";
+            $query_params[] = $filter_type;
+        }
+
+        if (!empty($filter_shipping)) {
+            $where_clauses[] = "shipping_status = %s";
+            $query_params[] = $filter_shipping;
+        }
+
+        $where_sql = implode(" AND ", $where_clauses);
+        
+        if (!empty($query_params)) {
+            $sql = $wpdb->prepare("SELECT * FROM $table_name WHERE $where_sql ORDER BY id DESC LIMIT 200", $query_params);
+        } else {
+            $sql = "SELECT * FROM $table_name WHERE $where_sql ORDER BY id DESC LIMIT 200";
+        }
+
+        $orders = $wpdb->get_results($sql);
+
+        // Stats Global
         $total_orders  = $wpdb->get_var("SELECT COUNT(*) FROM $table_name");
         $total_paid    = $wpdb->get_var("SELECT COUNT(*) FROM $table_name WHERE status IN ('PAID', 'berhasil', 'SUCCESS', 'LUNAS')");
         $total_physical= $wpdb->get_var("SELECT COUNT(*) FROM $table_name WHERE product_type = 'physical'");
         $total_revenue = $wpdb->get_var("SELECT SUM(amount) FROM $table_name WHERE status IN ('PAID', 'berhasil', 'SUCCESS', 'LUNAS')");
         ?>
-        <div class="wrap" style="max-width: 1320px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+        <div class="wrap" style="max-width: 1360px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
             
-            <div style="display: flex; align-items: center; justify-content: space-between; margin: 20px 0 15px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin: 20px 0 15px; flex-wrap: wrap; gap: 10px;">
                 <div>
                     <h1 style="margin: 0; font-size: 24px; font-weight: 700; color: #1e293b;">📋 Data Pesanan Masuk (WhatsApp & iPaymu)</h1>
-                    <p style="margin: 4px 0 0; color: #64748b; font-size: 13px;">Data pesanan masuk, alamat pengiriman buku fisik, status pembayaran, dan nomor resi.</p>
+                    <p style="margin: 4px 0 0; color: #64748b; font-size: 13px;">Data pesanan masuk, alamat pengiriman buku fisik, status pembayaran, nomor resi, dan kelola database.</p>
                 </div>
-                <a href="<?php echo admin_url('admin.php?page=ipaymu-gateway-settings'); ?>" class="button button-secondary" style="font-weight: 600;">⚙️ Buka Pengaturan</a>
+                <div style="display: flex; gap: 8px;">
+                    <a href="<?php echo admin_url('admin.php?page=ipaymu-gateway-settings'); ?>" class="button button-secondary" style="font-weight: 600;">⚙️ Buka Pengaturan</a>
+                </div>
             </div>
 
             <?php if (isset($_GET['updated'])) : ?>
-                <div class="notice notice-success is-dismissible" style="margin-bottom: 15px;"><p>Data pesanan berhasil diperbarui!</p></div>
+                <div class="notice notice-success is-dismissible" style="margin-bottom: 15px;"><p>✅ Data pesanan berhasil diperbarui!</p></div>
+            <?php endif; ?>
+
+            <?php if (isset($_GET['deleted'])) : ?>
+                <div class="notice notice-warning is-dismissible" style="margin-bottom: 15px;"><p>🗑️ Data pesanan (<?php echo esc_html($_GET['deleted']); ?> data) berhasil dihapus dari database.</p></div>
             <?php endif; ?>
 
             <!-- Summary Cards -->
@@ -393,112 +475,246 @@ class IPaymu_Custom_Gateway {
                 </div>
             </div>
 
-            <!-- Orders Table -->
-            <div style="background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 10px rgba(0,0,0,0.03); overflow-x: auto;">
-                <table class="wp-list-table widefat fixed striped table-view-list" style="border: none; margin: 0;">
-                    <thead>
-                        <tr style="background: #f8fafc;">
-                            <th style="padding: 12px 14px; font-weight: 700; width: 45px;">ID</th>
-                            <th style="padding: 12px 14px; font-weight: 700; width: 160px;">Pembeli & Kontak</th>
-                            <th style="padding: 12px 14px; font-weight: 700; width: 240px;">Alamat Pengiriman Paket</th>
-                            <th style="padding: 12px 14px; font-weight: 700; width: 95px;">Nominal</th>
-                            <th style="padding: 12px 14px; font-weight: 700; width: 110px;">Status Bayar</th>
-                            <th style="padding: 12px 14px; font-weight: 700; width: 220px;">Kurir & No. Resi</th>
-                            <th style="padding: 12px 14px; font-weight: 700; width: 120px;">Waktu Order</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (!empty($orders)) : ?>
-                            <?php foreach ($orders as $order) : 
-                                $is_paid = in_array(strtoupper($order->status), ['PAID', 'BERHASIL', 'SUCCESS', 'LUNAS']);
-                                $status_badge = $is_paid 
-                                    ? '<span style="background:#dcfce7; color:#15803d; padding:2px 7px; border-radius:5px; font-weight:700; font-size:10px;">✅ LUNAS</span>' 
-                                    : '<span style="background:#fef9c3; color:#a16207; padding:2px 7px; border-radius:5px; font-weight:700; font-size:10px;">⏳ PENDING</span>';
+            <!-- SEARCH & FILTER BAR -->
+            <div style="background: #fff; padding: 14px 18px; border-radius: 10px; border: 1px solid #e2e8f0; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+                <form method="get" action="" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+                    <input type="hidden" name="page" value="ipaymu-orders-list">
+                    
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; flex: 1;">
+                        <!-- Kolom Pencarian -->
+                        <div style="position: relative; min-width: 260px; flex: 1;">
+                            <input type="text" name="s" value="<?php echo esc_attr($search_query); ?>" placeholder="🔍 Cari nama, No. WA, kota, kecamatan, resi..." style="width: 100%; padding: 7px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px;">
+                        </div>
 
-                                $clean_phone = preg_replace('/[^0-9]/', '', $order->customer_phone);
-                                if (substr($clean_phone, 0, 1) === '0') {
-                                    $clean_phone = '62' . substr($clean_phone, 1);
-                                }
+                        <!-- Filter Status Pembayaran -->
+                        <select name="filter_status" style="padding: 6px 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 12px; height: 34px;">
+                            <option value="">-- Semua Status Bayar --</option>
+                            <option value="PAID" <?php selected($filter_status, 'PAID'); ?>>✅ Lunas</option>
+                            <option value="PENDING" <?php selected($filter_status, 'PENDING'); ?>>⏳ Pending</option>
+                        </select>
 
-                                $wa_msg = rawurlencode("Halo Kak {$order->customer_name},\n\nTerima kasih telah memesan {$order->product_name}.\nPaket Anda telah kami kirim via " . ($order->shipping_courier ?: 'Ekspedisi') . " dengan No. Resi: *" . ($order->tracking_number ?: '-') . "*\n\nTerima kasih!");
-                            ?>
-                                <tr>
-                                    <td style="padding: 12px 14px; font-weight: 600; color: #64748b;">#<?php echo esc_html($order->id); ?></td>
-                                    <td style="padding: 12px 14px;">
-                                        <div style="font-weight: 700; color: #0f172a;"><?php echo esc_html($order->customer_name); ?></div>
-                                        <div style="font-size: 11px; margin-top: 2px;">
-                                            <a href="https://wa.me/<?php echo esc_attr($clean_phone); ?>" target="_blank" style="color: #16a34a; text-decoration: none; font-weight: 600;">
-                                                💬 <?php echo esc_html($order->customer_phone); ?>
-                                            </a>
-                                        </div>
-                                        <div style="font-size: 11px; color: #64748b;"><?php echo esc_html($order->customer_email); ?></div>
-                                    </td>
-                                    <td style="padding: 12px 14px; font-size: 12px; line-height: 1.4;">
-                                        <div style="font-weight: 600; color: #1e293b;"><?php echo esc_html($order->shipping_address ?: '-'); ?></div>
-                                        <div style="color: #475569; margin-top: 2px;">
-                                            📍 <?php echo esc_html($order->shipping_subdistrict . ($order->shipping_city ? ', ' . $order->shipping_city : '')); ?>
-                                            <?php if($order->shipping_postal_code) echo ' - ' . esc_html($order->shipping_postal_code); ?>
-                                        </div>
-                                        <?php if(!empty($order->shipping_notes)): ?>
-                                            <div style="font-size: 11px; color: #d97706; margin-top: 2px; font-style: italic;">
-                                                📝 <?php echo esc_html($order->shipping_notes); ?>
+                        <!-- Filter Tipe Produk -->
+                        <select name="filter_type" style="padding: 6px 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 12px; height: 34px;">
+                            <option value="">-- Semua Jenis Produk --</option>
+                            <option value="physical" <?php selected($filter_type, 'physical'); ?>>📦 Produk Fisik</option>
+                            <option value="digital" <?php selected($filter_type, 'digital'); ?>>⚡ Produk Digital</option>
+                        </select>
+
+                        <!-- Filter Status Pengiriman -->
+                        <select name="filter_shipping" style="padding: 6px 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 12px; height: 34px;">
+                            <option value="">-- Status Pengiriman --</option>
+                            <option value="BELUM_DIKIRIM" <?php selected($filter_shipping, 'BELUM_DIKIRIM'); ?>>⏳ Belum Kirim</option>
+                            <option value="SEDANG_DIKIRIM" <?php selected($filter_shipping, 'SEDANG_DIKIRIM'); ?>>🚚 Sedang Kirim</option>
+                            <option value="SUDAH_DIKIRIM" <?php selected($filter_shipping, 'SUDAH_DIKIRIM'); ?>>✅ Sudah Sampai</option>
+                        </select>
+
+                        <button type="submit" class="button button-primary" style="font-weight: 600; padding: 4px 14px; height: 34px;">
+                            Filter / Cari
+                        </button>
+
+                        <?php if (!empty($search_query) || !empty($filter_status) || !empty($filter_type) || !empty($filter_shipping)) : ?>
+                            <a href="<?php echo admin_url('admin.php?page=ipaymu-orders-list'); ?>" class="button button-secondary" style="height: 34px; line-height: 32px;">
+                                🔄 Reset Filter
+                            </a>
+                        <?php endif; ?>
+                    </div>
+
+                    <div style="font-size: 12px; color: #64748b; font-weight: 600;">
+                        Menampilkan: <strong><?php echo count($orders); ?></strong> data
+                    </div>
+                </form>
+            </div>
+
+            <!-- Bulk Actions Form & Table -->
+            <form method="post" action="" id="ipaymu_bulk_form" onsubmit="return confirmBulkAction();">
+                <?php wp_nonce_field('ipaymu_bulk_orders_action'); ?>
+
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <select name="ipaymu_bulk_action" id="bulk_action_selector" style="font-size: 12px; padding: 4px 8px; border-radius: 6px; border: 1px solid #cbd5e1; height: 30px;">
+                            <option value="">Tindakan Masal</option>
+                            <option value="bulk_delete">🗑️ Hapus Pesanan Terpilih</option>
+                        </select>
+                        <button type="submit" class="button button-secondary" style="height: 30px; font-size: 12px; line-height: 28px;">Terapkan</button>
+                    </div>
+                    <div style="font-size: 11px; color: #94a3b8;">
+                        💡 <em>Centang kotak untuk memilih data yang ingin dihapus sekaligus.</em>
+                    </div>
+                </div>
+
+                <div style="background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 10px rgba(0,0,0,0.03); overflow-x: auto;">
+                    <table class="wp-list-table widefat fixed striped table-view-list" style="border: none; margin: 0;">
+                        <thead>
+                            <tr style="background: #f8fafc;">
+                                <th style="padding: 12px 14px; width: 35px; text-align: center;">
+                                    <input type="checkbox" id="select_all_orders" onclick="toggleSelectAllOrders(this)">
+                                </th>
+                                <th style="padding: 12px 10px; font-weight: 700; width: 50px;">ID</th>
+                                <th style="padding: 12px 14px; font-weight: 700; width: 170px;">Pembeli & Kontak</th>
+                                <th style="padding: 12px 14px; font-weight: 700; width: 230px;">Produk & Alamat Paket</th>
+                                <th style="padding: 12px 14px; font-weight: 700; width: 95px;">Nominal</th>
+                                <th style="padding: 12px 14px; font-weight: 700; width: 95px;">Status Bayar</th>
+                                <th style="padding: 12px 14px; font-weight: 700; width: 230px;">Kurir & No. Resi</th>
+                                <th style="padding: 12px 14px; font-weight: 700; width: 100px;">Waktu</th>
+                                <th style="padding: 12px 10px; font-weight: 700; width: 65px; text-align: center;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (!empty($orders)) : ?>
+                                <?php foreach ($orders as $order) : 
+                                    $is_paid = in_array(strtoupper($order->status), ['PAID', 'BERHASIL', 'SUCCESS', 'LUNAS']);
+                                    $status_badge = $is_paid 
+                                        ? '<span style="background:#dcfce7; color:#15803d; padding:2px 7px; border-radius:5px; font-weight:700; font-size:10px;">✅ LUNAS</span>' 
+                                        : '<span style="background:#fef9c3; color:#a16207; padding:2px 7px; border-radius:5px; font-weight:700; font-size:10px;">⏳ PENDING</span>';
+
+                                    $clean_phone = preg_replace('/[^0-9]/', '', $order->customer_phone);
+                                    if (substr($clean_phone, 0, 1) === '0') {
+                                        $clean_phone = '62' . substr($clean_phone, 1);
+                                    }
+
+                                    $delete_nonce_url = wp_nonce_url(admin_url('admin.php?page=ipaymu-orders-list&action=delete_order&order_id=' . $order->id), 'ipaymu_delete_order_' . $order->id);
+                                    $wa_msg = rawurlencode("Halo Kak {$order->customer_name},\n\nTerima kasih telah memesan {$order->product_name}.\nPaket Anda telah kami kirim via " . ($order->shipping_courier ?: 'Ekspedisi') . " dengan No. Resi: *" . ($order->tracking_number ?: '-') . "*\n\nTerima kasih!");
+                                ?>
+                                    <tr>
+                                        <td style="padding: 12px 14px; text-align: center; vertical-align: top;">
+                                            <input type="checkbox" name="selected_orders[]" value="<?php echo esc_attr($order->id); ?>" class="order-checkbox">
+                                        </td>
+                                        <td style="padding: 12px 10px; font-weight: 600; color: #64748b; vertical-align: top;">
+                                            #<?php echo esc_html($order->id); ?>
+                                            <div style="font-size: 9px; color: #94a3b8; margin-top: 2px;"><?php echo esc_html($order->reference_id ?: '-'); ?></div>
+                                        </td>
+                                        <td style="padding: 12px 14px; vertical-align: top;">
+                                            <div style="font-weight: 700; color: #0f172a;"><?php echo esc_html($order->customer_name); ?></div>
+                                            <div style="font-size: 11px; margin-top: 2px;">
+                                                <a href="https://wa.me/<?php echo esc_attr($clean_phone); ?>" target="_blank" style="color: #16a34a; text-decoration: none; font-weight: 600;">
+                                                    💬 <?php echo esc_html($order->customer_phone); ?>
+                                                </a>
                                             </div>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td style="padding: 12px 14px; font-weight: 700; color: #0f172a;">Rp <?php echo number_format($order->amount, 0, ',', '.'); ?></td>
-                                    <td style="padding: 12px 14px;"><?php echo $status_badge; ?></td>
-                                    
-                                    <!-- Edit Resi & Status Form -->
-                                    <td style="padding: 12px 14px;">
-                                        <form method="post" action="" style="margin: 0;">
-                                            <?php wp_nonce_field('ipaymu_update_shipping_action'); ?>
-                                            <input type="hidden" name="order_id" value="<?php echo esc_attr($order->id); ?>">
-                                            
+                                            <div style="font-size: 11px; color: #64748b;"><?php echo esc_html($order->customer_email); ?></div>
+                                        </td>
+                                        <td style="padding: 12px 14px; font-size: 12px; line-height: 1.4; vertical-align: top;">
+                                            <div style="font-weight: 700; color: #0284c7; font-size: 11px; margin-bottom: 2px;">
+                                                <?php echo esc_html($order->product_name ?: '50 TEKNIK MEMBUKA KELAS'); ?>
+                                                <span style="font-size: 9px; padding: 1px 4px; background: #e0f2fe; color: #0369a1; border-radius: 3px; font-weight: 600; text-transform: uppercase;">
+                                                    <?php echo ($order->product_type === 'physical') ? 'Fisik' : 'Digital'; ?>
+                                                </span>
+                                            </div>
+                                            <div style="font-weight: 600; color: #1e293b;"><?php echo esc_html($order->shipping_address ?: '-'); ?></div>
+                                            <div style="color: #475569; margin-top: 2px;">
+                                                📍 <?php echo esc_html($order->shipping_subdistrict . ($order->shipping_city ? ', ' . $order->shipping_city : '')); ?>
+                                                <?php if($order->shipping_postal_code) echo ' - ' . esc_html($order->shipping_postal_code); ?>
+                                            </div>
+                                            <?php if(!empty($order->shipping_notes)): ?>
+                                                <div style="font-size: 11px; color: #d97706; margin-top: 2px; font-style: italic;">
+                                                    📝 <?php echo esc_html($order->shipping_notes); ?>
+                                                </div>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td style="padding: 12px 14px; font-weight: 700; color: #0f172a; vertical-align: top;">
+                                            Rp <?php echo number_format($order->amount, 0, ',', '.'); ?>
+                                        </td>
+                                        <td style="padding: 12px 14px; vertical-align: top;"><?php echo $status_badge; ?></td>
+                                        
+                                        <!-- Edit Resi & Status Form -->
+                                        <td style="padding: 12px 14px; vertical-align: top;">
                                             <div style="display: flex; gap: 4px; margin-bottom: 4px;">
-                                                <input type="text" name="shipping_courier" value="<?php echo esc_attr($order->shipping_courier); ?>" placeholder="Kurir" style="width: 70px; font-size: 11px; padding: 2px 4px; border-radius: 4px;">
-                                                <input type="text" name="tracking_number" value="<?php echo esc_attr($order->tracking_number); ?>" placeholder="No. Resi" style="width: 110px; font-size: 11px; padding: 2px 4px; border-radius: 4px;">
+                                                <input type="text" name="shipping_courier_<?php echo $order->id; ?>" id="courier_<?php echo $order->id; ?>" value="<?php echo esc_attr($order->shipping_courier); ?>" placeholder="Kurir" style="width: 70px; font-size: 11px; padding: 2px 4px; border-radius: 4px;">
+                                                <input type="text" name="tracking_number_<?php echo $order->id; ?>" id="resi_<?php echo $order->id; ?>" value="<?php echo esc_attr($order->tracking_number); ?>" placeholder="No. Resi" style="width: 110px; font-size: 11px; padding: 2px 4px; border-radius: 4px;">
                                             </div>
                                             
                                             <div style="display: flex; gap: 4px; align-items: center;">
-                                                <select name="shipping_status" style="font-size: 10px; padding: 2px 4px; border-radius: 4px; height: 24px;">
+                                                <select id="shipstatus_<?php echo $order->id; ?>" style="font-size: 10px; padding: 2px 4px; border-radius: 4px; height: 24px;">
                                                     <option value="BELUM_DIKIRIM" <?php selected($order->shipping_status, 'BELUM_DIKIRIM'); ?>>⏳ Belum Kirim</option>
                                                     <option value="SEDANG_DIKIRIM" <?php selected($order->shipping_status, 'SEDANG_DIKIRIM'); ?>>🚚 Dikirim</option>
                                                     <option value="SUDAH_DIKIRIM" <?php selected($order->shipping_status, 'SUDAH_DIKIRIM'); ?>>✅ Sampai</option>
                                                 </select>
 
-                                                <select name="payment_status" style="font-size: 10px; padding: 2px 4px; border-radius: 4px; height: 24px;">
+                                                <select id="paystatus_<?php echo $order->id; ?>" style="font-size: 10px; padding: 2px 4px; border-radius: 4px; height: 24px;">
                                                     <option value="PENDING" <?php selected($order->status, 'PENDING'); ?>>Pending</option>
                                                     <option value="LUNAS" <?php selected($order->status, 'LUNAS'); ?>>Lunas</option>
                                                 </select>
 
-                                                <button type="submit" name="ipaymu_update_shipping" class="button button-small" style="font-size: 10px; height: 24px; padding: 0 6px;">Simpan</button>
+                                                <button type="button" onclick="saveSingleOrderShipping(<?php echo $order->id; ?>)" class="button button-small" style="font-size: 10px; height: 24px; padding: 0 6px;">Simpan</button>
                                             </div>
-                                        </form>
 
-                                        <?php if (!empty($order->tracking_number)) : ?>
-                                            <div style="margin-top: 4px;">
-                                                <a href="https://wa.me/<?php echo esc_attr($clean_phone); ?>?text=<?php echo $wa_msg; ?>" target="_blank" style="font-size: 10px; color: #16a34a; font-weight: 700; text-decoration: none;">
-                                                    📲 Kirim Resi via WA
-                                                </a>
-                                            </div>
-                                        <?php endif; ?>
-                                    </td>
+                                            <?php if (!empty($order->tracking_number)) : ?>
+                                                <div style="margin-top: 4px;">
+                                                    <a href="https://wa.me/<?php echo esc_attr($clean_phone); ?>?text=<?php echo $wa_msg; ?>" target="_blank" style="font-size: 10px; color: #16a34a; font-weight: 700; text-decoration: none;">
+                                                        📲 Kirim Resi via WA
+                                                    </a>
+                                                </div>
+                                            <?php endif; ?>
+                                        </td>
 
-                                    <td style="padding: 12px 14px; color: #64748b; font-size: 11px;">
-                                        <?php echo esc_html(date('d M Y, H:i', strtotime($order->created_at))); ?>
+                                        <td style="padding: 12px 14px; color: #64748b; font-size: 11px; vertical-align: top;">
+                                            <?php echo esc_html(date('d/m/y H:i', strtotime($order->created_at))); ?>
+                                        </td>
+
+                                        <!-- Tombol Hapus Satuan -->
+                                        <td style="padding: 12px 10px; text-align: center; vertical-align: top;">
+                                            <a href="<?php echo esc_url($delete_nonce_url); ?>" 
+                                               onclick="return confirm('Apakah Anda yakin ingin menghapus data pesanan #<?php echo $order->id; ?> (<?php echo esc_js($order->customer_name); ?>)?');"
+                                               class="button button-link-delete" 
+                                               style="color: #ef4444; font-size: 13px; text-decoration: none; padding: 4px;" 
+                                               title="Hapus Pesanan Ini">
+                                                🗑️
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else : ?>
+                                <tr>
+                                    <td colspan="9" style="text-align: center; padding: 35px; color: #94a3b8;">
+                                        🔍 Tidak ada data pesanan yang sesuai dengan filter atau pencarian Anda.
                                     </td>
                                 </tr>
-                            <?php endforeach; ?>
-                        <?php else : ?>
-                            <tr>
-                                <td colspan="7" style="text-align: center; padding: 30px; color: #94a3b8;">
-                                    Belum ada data pesanan yang masuk. Lakukan tes order dari halaman landing page.
-                                </td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </form>
+
+            <!-- Hidden Form untuk AJAX/Post update per row agar kompatibel -->
+            <form id="single_update_form" method="post" action="" style="display:none;">
+                <?php wp_nonce_field('ipaymu_update_shipping_action'); ?>
+                <input type="hidden" name="ipaymu_update_shipping" value="1">
+                <input type="hidden" name="order_id" id="hidden_order_id">
+                <input type="hidden" name="shipping_courier" id="hidden_shipping_courier">
+                <input type="hidden" name="tracking_number" id="hidden_tracking_number">
+                <input type="hidden" name="shipping_status" id="hidden_shipping_status">
+                <input type="hidden" name="payment_status" id="hidden_payment_status">
+            </form>
+
+            <script>
+            function toggleSelectAllOrders(source) {
+                var checkboxes = document.querySelectorAll('.order-checkbox');
+                for (var i = 0; i < checkboxes.length; i++) {
+                    checkboxes[i].checked = source.checked;
+                }
+            }
+
+            function confirmBulkAction() {
+                var action = document.getElementById('bulk_action_selector').value;
+                if (action === 'bulk_delete') {
+                    var checked = document.querySelectorAll('.order-checkbox:checked');
+                    if (checked.length === 0) {
+                        alert('Pilih setidaknya satu pesanan untuk dihapus.');
+                        return false;
+                    }
+                    return confirm('Apakah Anda yakin ingin MENGHAPUS PERMANEN ' + checked.length + ' pesanan yang dipilih?');
+                }
+                return true;
+            }
+
+            function saveSingleOrderShipping(orderId) {
+                document.getElementById('hidden_order_id').value = orderId;
+                document.getElementById('hidden_shipping_courier').value = document.getElementById('courier_' + orderId).value;
+                document.getElementById('hidden_tracking_number').value = document.getElementById('resi_' + orderId).value;
+                document.getElementById('hidden_shipping_status').value = document.getElementById('shipstatus_' + orderId).value;
+                document.getElementById('hidden_payment_status').value = document.getElementById('paystatus_' + orderId).value;
+                document.getElementById('single_update_form').submit();
+            }
+            </script>
 
         </div>
         <?php

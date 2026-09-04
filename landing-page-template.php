@@ -210,14 +210,26 @@
                             </div>
                         </div>
 
+                        <?php
+                        $hero_post_id   = get_the_ID();
+                        $hero_meta_price= $hero_post_id ? get_post_meta($hero_post_id, '_ipaymu_custom_price', true) : '';
+                        $hero_meta_norm = $hero_post_id ? get_post_meta($hero_post_id, '_ipaymu_custom_normal_price', true) : '';
+                        $display_price  = !empty($hero_meta_price) ? (int)$hero_meta_price : (int) get_option('ipaymu_product_price', 80000);
+                        $display_normal = !empty($hero_meta_norm) ? (int)$hero_meta_norm : (int) get_option('ipaymu_normal_price', 100000);
+                        if ($display_price == 99000 || $display_price <= 0) $display_price = 80000;
+                        if ($display_normal == 99000 || $display_normal <= 0) $display_normal = 100000;
+                        ?>
+
                         <div class="mb-3 sm:mb-4">
                             <div class="flex items-center gap-2">
-                                <span class="text-xs text-slate-400 line-through">Rp 100.000</span>
-                                <span class="bg-red-100 text-red-700 text-[9px] sm:text-[10px] font-black px-1.5 py-0.2 rounded-full">Hemat 20% (Pesan Hari Ini)</span>
+                                <?php if ($display_normal > $display_price): ?>
+                                    <span class="text-xs text-slate-400 line-through">Rp <?php echo number_format($display_normal, 0, ',', '.'); ?></span>
+                                    <span class="bg-red-100 text-red-700 text-[9px] sm:text-[10px] font-black px-1.5 py-0.2 rounded-full">Hemat Rp <?php echo number_format($display_normal - $display_price, 0, ',', '.'); ?> (Pesan Hari Ini)</span>
+                                <?php endif; ?>
                             </div>
                             <div class="flex items-baseline gap-1 mt-0.5">
                                 <span class="text-xs font-bold text-slate-600">Rp</span>
-                                <span class="font-heading font-black text-2xl xs:text-3xl sm:text-4xl text-slate-900"><?php echo number_format((int) get_option('ipaymu_product_price', 80000), 0, ',', '.'); ?></span>
+                                <span class="font-heading font-black text-2xl xs:text-3xl sm:text-4xl text-slate-900"><?php echo number_format($display_price, 0, ',', '.'); ?></span>
                                 <span class="text-[10px] sm:text-xs text-slate-500 font-medium">/ buku fisik</span>
                             </div>
                         </div>
@@ -232,7 +244,7 @@
                             <a href="#order-form" 
                                class="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-brand-orange via-amber-500 to-orange-600 hover:from-orange-600 hover:to-amber-600 text-white font-heading font-bold text-xs sm:text-base py-3 sm:py-3.5 px-4 rounded-xl sm:rounded-2xl shadow-fun hover:shadow-xl transition-all duration-200 active:scale-95 text-center">
                                 <i class="fa-brands fa-whatsapp text-lg"></i>
-                                <span>AMBIL PROMO RP 80.000 HARI INI</span>
+                                <span>AMBIL PROMO RP <?php echo number_format($display_price, 0, ',', '.'); ?> HARI INI</span>
                             </a>
                             <a href="https://wa.me/6285713911142?text=Halo%20CS%20Kang%20Deden%20Gurame,%20saya%20ingin%20tanya%20seputar%2050%20Teknik%20Membuka%20Kelas%20Anti%20Ngantuk." 
                                target="_blank"
