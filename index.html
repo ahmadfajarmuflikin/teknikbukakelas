@@ -569,49 +569,15 @@
                 </p>
             </div>
 
-            <!-- Video Player Container (Vertical Shorts Aspect Ratio Container with YouTube IFrame API Instant Play) -->
-            <div class="max-w-sm sm:max-w-md mx-auto" id="video-demo-container-standalone">
+            <!-- Video Player Container (Vertical Shorts 9:16 - Pure Direct 1-Touch Play) -->
+            <div class="max-w-sm sm:max-w-md mx-auto">
                 <div class="relative bg-slate-950 rounded-2xl sm:rounded-3xl p-2 sm:p-3 shadow-2xl border-2 sm:border-4 border-amber-300">
                     <div class="relative w-full overflow-hidden rounded-xl sm:rounded-2xl bg-black shadow-inner" style="padding-top: 177.77%;">
                         
-                        <!-- High Quality Custom Thumbnail Cover (Sebelum diplay) -->
-                        <div id="video-cover-standalone" 
-                             onclick="triggerYouTubePlayStandalone()" 
-                             class="absolute inset-0 w-full h-full cursor-pointer group select-none z-10 transition-opacity duration-300">
-                            
-                            <!-- High Resolution Vertical HD YouTube Shorts Thumbnail (720x1280 - Full Frame 9:16) -->
-                            <img src="https://i.ytimg.com/vi/UOqIGm2l6Hg/oar2.jpg" 
-                                 alt="Thumbnail Video Demo Flashcard Anti Ngantuk" 
-                                 class="w-full h-full object-cover object-center transform group-hover:scale-105 transition-transform duration-500 ease-out brightness-[0.95] group-hover:brightness-100 block">
-                            
-                            <!-- Vignette & Glow Overlay -->
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/30 group-hover:from-black/60 transition-colors duration-300"></div>
-
-                            <!-- Animated Pulsing Play Button -->
-                            <div class="absolute inset-0 flex flex-col items-center justify-center p-4 pointer-events-none">
-                                <div class="relative flex items-center justify-center">
-                                    <div class="absolute w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-red-600/40 animate-ping"></div>
-                                    <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-red-600 to-rose-500 text-white flex items-center justify-center shadow-2xl border-2 border-white transform group-hover:scale-110 transition-transform duration-200">
-                                        <i class="fa-solid fa-play text-xl sm:text-2xl ml-1 text-white"></i>
-                                    </div>
-                                </div>
-                                <span class="mt-3.5 bg-black/75 backdrop-blur-md text-white font-heading font-bold text-[11px] sm:text-xs px-3.5 py-1.5 rounded-full border border-white/20 shadow-lg tracking-wide group-hover:bg-brand-orange group-hover:border-amber-300 transition-all">
-                                    ▶ KLIK UNTUK PUTAR VIDEO
-                                </span>
-                            </div>
-
-                            <!-- Top Floating Badge -->
-                            <div class="absolute top-3 left-3 bg-red-600/90 backdrop-blur-sm text-white text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-lg shadow border border-white/30 flex items-center gap-1.5 pointer-events-none">
-                                <i class="fa-brands fa-youtube text-sm"></i>
-                                <span>Demo Produk</span>
-                            </div>
-                        </div>
-
-                        <!-- Embedded YouTube Iframe with JS API Ready -->
+                        <!-- Direct YouTube Shorts Embed (Native 1-Click / 1-Touch Play Guaranteed) -->
                         <iframe 
-                            id="youtube-player-iframe-standalone"
                             class="absolute top-0 left-0 w-full h-full rounded-xl sm:rounded-2xl"
-                            src="https://www.youtube.com/embed/UOqIGm2l6Hg?enablejsapi=1&autoplay=0&mute=0&rel=0&modestbranding=1&playsinline=1" 
+                            src="https://www.youtube-nocookie.com/embed/UOqIGm2l6Hg?rel=0&modestbranding=1&playsinline=1" 
                             title="Demo Cara Penggunaan Flashcard 50 Teknik Membuka Kelas Anti Ngantuk" 
                             frameborder="0" 
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
@@ -620,25 +586,6 @@
 
                     </div>
                 </div>
-
-                <script>
-                function triggerYouTubePlayStandalone() {
-                    var cover = document.getElementById('video-cover-standalone');
-                    var iframe = document.getElementById('youtube-player-iframe-standalone');
-                    
-                    if (cover) {
-                        cover.style.display = 'none';
-                    }
-                    if (iframe && iframe.contentWindow) {
-                        // Send YouTube API playVideo command immediately
-                        iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-                        // Fallback URL update if API postMessage is restricted
-                        if (!iframe.src.includes('autoplay=1')) {
-                            iframe.src = "https://www.youtube.com/embed/UOqIGm2l6Hg?autoplay=1&mute=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1";
-                        }
-                    }
-                }
-                </script>
 
                 <!-- Video Helper CTA / Note -->
                 <div class="text-center mt-4 sm:mt-5 space-y-2">
