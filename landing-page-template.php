@@ -212,12 +212,12 @@
 
                         <div class="mb-3 sm:mb-4">
                             <div class="flex items-center gap-2">
-                                <span class="text-xs text-slate-400 line-through">Rp 199.000</span>
-                                <span class="bg-red-100 text-red-700 text-[9px] sm:text-[10px] font-black px-1.5 py-0.2 rounded-full">Hemat 50%</span>
+                                <span class="text-xs text-slate-400 line-through">Rp 100.000</span>
+                                <span class="bg-red-100 text-red-700 text-[9px] sm:text-[10px] font-black px-1.5 py-0.2 rounded-full">Hemat 20% (Pesan Hari Ini)</span>
                             </div>
                             <div class="flex items-baseline gap-1 mt-0.5">
                                 <span class="text-xs font-bold text-slate-600">Rp</span>
-                                <span class="font-heading font-black text-2xl xs:text-3xl sm:text-4xl text-slate-900"><?php echo number_format((int) get_option('ipaymu_product_price', 99000), 0, ',', '.'); ?></span>
+                                <span class="font-heading font-black text-2xl xs:text-3xl sm:text-4xl text-slate-900"><?php echo number_format((int) get_option('ipaymu_product_price', 80000), 0, ',', '.'); ?></span>
                                 <span class="text-[10px] sm:text-xs text-slate-500 font-medium">/ buku fisik</span>
                             </div>
                         </div>
@@ -231,8 +231,8 @@
                         <div class="space-y-2">
                             <a href="#order-form" 
                                class="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-brand-orange via-amber-500 to-orange-600 hover:from-orange-600 hover:to-amber-600 text-white font-heading font-bold text-xs sm:text-base py-3 sm:py-3.5 px-4 rounded-xl sm:rounded-2xl shadow-fun hover:shadow-xl transition-all duration-200 active:scale-95 text-center">
-                                <i class="fa-solid fa-credit-card"></i>
-                                <span>AMBIL PROMO RP 99.000 SEKARANG</span>
+                                <i class="fa-brands fa-whatsapp text-lg"></i>
+                                <span>AMBIL PROMO RP 80.000 HARI INI</span>
                             </a>
                             <a href="https://wa.me/6285713911142?text=Halo%20CS%20Kang%20Deden%20Gurame,%20saya%20ingin%20tanya%20seputar%2050%20Teknik%20Membuka%20Kelas%20Anti%20Ngantuk." 
                                target="_blank"
@@ -463,13 +463,28 @@
     <section class="py-8 sm:py-16 bg-slate-50 border-t border-slate-200">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 text-center">
             <h2 class="font-heading font-extrabold text-lg xs:text-xl sm:text-3xl text-slate-900 mb-1">FORMULA GURAME</h2>
-            <div class="font-extrabold text-brand-orange text-xs sm:text-sm mb-4">CONNECT → ACTIVATE → FUN → FOCUS → LEARN</div>
-            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 max-w-4xl mx-auto mb-4 text-center">
-                <div class="bg-white p-2.5 rounded-xl border border-amber-200 font-bold text-xs">CONNECT<div class="font-normal text-[9px] text-slate-500">Hubungan peserta</div></div>
-                <div class="bg-white p-2.5 rounded-xl border border-orange-200 font-bold text-xs">ACTIVATE<div class="font-normal text-[9px] text-slate-500">Bergerak & terlibat</div></div>
-                <div class="bg-white p-2.5 rounded-xl border border-yellow-200 font-bold text-xs">FUN<div class="font-normal text-[9px] text-slate-500">Emosi positif</div></div>
-                <div class="bg-white p-2.5 rounded-xl border border-sky-200 font-bold text-xs">FOCUS<div class="font-normal text-[9px] text-slate-500">Arahkan perhatian</div></div>
-                <div class="bg-white p-2.5 rounded-xl border border-emerald-300 font-bold text-xs col-span-2 sm:col-span-1">LEARN<div class="font-normal text-[9px] text-slate-500">Tujuan belajar</div></div>
+            <div class="font-extrabold text-brand-orange text-xs sm:text-sm mb-4 tracking-wider uppercase">Engage - Connect - Deliver - Reflect</div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3.5 max-w-4xl mx-auto mb-4 text-center">
+                <div class="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-amber-200 shadow-xs">
+                    <div class="w-7 h-7 rounded-full bg-amber-100 text-brand-orange font-bold text-xs flex items-center justify-center mx-auto mb-1">1</div>
+                    <div class="font-heading font-bold text-xs sm:text-sm text-slate-900">ENGAGE</div>
+                    <div class="font-normal text-[10px] sm:text-xs text-slate-500 mt-0.5">Tarik perhatian & libatkan peserta sejak awal</div>
+                </div>
+                <div class="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-orange-200 shadow-xs">
+                    <div class="w-7 h-7 rounded-full bg-orange-100 text-orange-600 font-bold text-xs flex items-center justify-center mx-auto mb-1">2</div>
+                    <div class="font-heading font-bold text-xs sm:text-sm text-slate-900">CONNECT</div>
+                    <div class="font-normal text-[10px] sm:text-xs text-slate-500 mt-0.5">Bangun kedekatan & kenyamanan kelas</div>
+                </div>
+                <div class="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-sky-200 shadow-xs">
+                    <div class="w-7 h-7 rounded-full bg-sky-100 text-sky-600 font-bold text-xs flex items-center justify-center mx-auto mb-1">3</div>
+                    <div class="font-heading font-bold text-xs sm:text-sm text-slate-900">DELIVER</div>
+                    <div class="font-normal text-[10px] sm:text-xs text-slate-500 mt-0.5">Sampaikan materi secara aktif & interaktif</div>
+                </div>
+                <div class="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-emerald-300 shadow-xs">
+                    <div class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-600 font-bold text-xs flex items-center justify-center mx-auto mb-1">4</div>
+                    <div class="font-heading font-bold text-xs sm:text-sm text-slate-900">REFLECT</div>
+                    <div class="font-normal text-[10px] sm:text-xs text-slate-500 mt-0.5">Refleksi & kuatkan pemahaman peserta</div>
+                </div>
             </div>
             <div class="bg-amber-50 p-3 rounded-xl border border-amber-200 max-w-md mx-auto text-xs font-bold text-slate-900">FUN-nya dapat. BELAJAR-nya tetap dapat.</div>
         </div>
@@ -595,17 +610,17 @@
     <div class="fixed bottom-0 left-0 right-0 z-50 p-2 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-2xl md:hidden flex items-center justify-between gap-2 safe-bottom">
         <div class="truncate min-w-0">
             <div class="text-[10px] xs:text-[11px] font-extrabold text-slate-900 leading-tight truncate">50 Teknik Anti Ngantuk</div>
-            <div class="text-[9px] xs:text-[10px] text-brand-orange font-bold">Promo Rp 99.000</div>
+            <div class="text-[9px] xs:text-[10px] text-brand-orange font-bold">Promo Hari Ini Rp 80.000</div>
         </div>
         <div class="flex items-center gap-1.5 shrink-0">
-            <a href="https://wa.me/6285713911142?text=Halo%20CS%20Kang%20Deden%20Gurame,%20saya%20ingin%20tanya%20seputar%2050%20Teknik%20Membuka%20Kelas%20Anti%20Ngantuk." 
+            <a href="https://wa.me/6285713911142?text=Halo%20CS%20Kang%20Deden%20Gurame,%20saya%20ingin%20pesan%2050%20Teknik%20Membuka%20Kelas%20Anti%20Ngantuk%20dengan%20promo%20Rp%2080.000." 
                target="_blank"
                class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs p-2 rounded-xl border border-slate-200 flex items-center justify-center">
                 <i class="fa-brands fa-whatsapp text-emerald-600 text-sm"></i>
             </a>
             <a href="#order-form" class="bg-brand-orange hover:bg-orange-600 text-white font-bold text-[11px] xs:text-xs px-3 py-1.5 rounded-xl flex items-center gap-1 shadow shrink-0 active:scale-95 transition-all">
-                <i class="fa-solid fa-cart-shopping text-[10px]"></i>
-                <span>Beli</span>
+                <i class="fa-brands fa-whatsapp text-xs"></i>
+                <span>Pesan</span>
             </a>
         </div>
     </div>

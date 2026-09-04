@@ -1,8 +1,8 @@
 <?php
 /**
- * Plugin Name: iPaymu Gateway - Multi-Product (Fisik & Digital Ready)
- * Description: Integrasi iPaymu API v2 untuk WordPress. Mendukung Produk Fisik (Alamat & Manajemen Resi) dan Produk Digital (Akses Instan), Dashboard Pesanan Lengkap, Sandbox & Live.
- * Version: 3.0.0
+ * Plugin Name: iPaymu Gateway & WhatsApp Order - 50 Teknik Anti Ngantuk
+ * Description: Integrasi Pemesanan WhatsApp & iPaymu Gateway API v2 untuk WordPress (Mendukung Produk Fisik & Digital, Promo Rp 80.000, Database Order, Manajemen Resi, Toggle WhatsApp / iPaymu).
+ * Version: 3.1.0
  * Author: Kang Deden Gurame
  */
 
@@ -72,10 +72,11 @@ class IPaymu_Custom_Gateway {
             shipping_courier varchar(50) DEFAULT '',
             shipping_status varchar(50) NOT NULL DEFAULT 'BELUM_DIKIRIM',
             amount int(11) NOT NULL,
+            payment_method varchar(50) NOT NULL DEFAULT 'whatsapp',
             payment_url text DEFAULT NULL,
             session_id varchar(255) DEFAULT NULL,
             trx_id varchar(100) DEFAULT NULL,
-            payment_channel varchar(100) DEFAULT 'iPaymu',
+            payment_channel varchar(100) DEFAULT 'WhatsApp CS',
             status varchar(50) NOT NULL DEFAULT 'PENDING',
             environment varchar(20) NOT NULL DEFAULT 'sandbox',
             created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -101,18 +102,23 @@ class IPaymu_Custom_Gateway {
             $resi       = sanitize_text_field($_POST['tracking_number']);
             $courier    = sanitize_text_field($_POST['shipping_courier']);
             $ship_status= sanitize_text_field($_POST['shipping_status']);
+            $pay_status = isset($_POST['payment_status']) ? sanitize_text_field($_POST['payment_status']) : '';
+
+            $data_update = [
+                'tracking_number'  => $resi,
+                'shipping_courier' => $courier,
+                'shipping_status'  => $ship_status,
+                'updated_at'       => current_time('mysql')
+            ];
+
+            if (!empty($pay_status)) {
+                $data_update['status'] = $pay_status;
+            }
 
             $wpdb->update(
                 $table_name,
-                [
-                    'tracking_number'  => $resi,
-                    'shipping_courier' => $courier,
-                    'shipping_status'  => $ship_status,
-                    'updated_at'       => current_time('mysql')
-                ],
-                ['id' => $order_id],
-                ['%s', '%s', '%s', '%s'],
-                ['%d']
+                $data_update,
+                ['id' => $order_id]
             );
 
             wp_redirect(admin_url('admin.php?page=ipaymu-orders-list&updated=1'));
@@ -125,8 +131,8 @@ class IPaymu_Custom_Gateway {
      */
     public function register_admin_menus() {
         add_menu_page(
-            'Data Pesanan iPaymu',
-            'iPaymu Orders',
+            'Data Pesanan',
+            'Data Pesanan',
             'manage_options',
             'ipaymu-orders-list',
             [$this, 'render_orders_list_page'],
@@ -145,7 +151,7 @@ class IPaymu_Custom_Gateway {
 
         add_submenu_page(
             'ipaymu-orders-list',
-            'Pengaturan Gateway & Produk',
+            'Pengaturan Gateway & WhatsApp',
             '⚙️ Pengaturan',
             'manage_options',
             'ipaymu-gateway-settings',
@@ -167,10 +173,13 @@ class IPaymu_Custom_Gateway {
      * Mendaftarkan opsi pengaturan ke WordPress Database
      */
     public function register_plugin_settings() {
+        register_setting('ipaymu_settings_group', 'ipaymu_checkout_mode'); // whatsapp | ipaymu
+        register_setting('ipaymu_settings_group', 'ipaymu_cs_whatsapp');
         register_setting('ipaymu_settings_group', 'ipaymu_mode');
         register_setting('ipaymu_settings_group', 'ipaymu_product_type'); // physical | digital
         register_setting('ipaymu_settings_group', 'ipaymu_product_name');
         register_setting('ipaymu_settings_group', 'ipaymu_product_price');
+        register_setting('ipaymu_settings_group', 'ipaymu_normal_price');
         register_setting('ipaymu_settings_group', 'ipaymu_va');
         register_setting('ipaymu_settings_group', 'ipaymu_api_key');
         register_setting('ipaymu_settings_group', 'ipaymu_return_url');
@@ -178,7 +187,7 @@ class IPaymu_Custom_Gateway {
     }
 
     /**
-     * Halaman Dashboard: Data Pesanan (Fisik & Digital) di WP-Admin
+     * Halaman Dashboard: Data Pesanan di WP-Admin
      */
     public function render_orders_list_page() {
         global $wpdb;
@@ -188,17 +197,16 @@ class IPaymu_Custom_Gateway {
 
         $orders = $wpdb->get_results("SELECT * FROM $table_name ORDER BY id DESC LIMIT 100");
         $total_orders  = $wpdb->get_var("SELECT COUNT(*) FROM $table_name");
-        $total_paid    = $wpdb->get_var("SELECT COUNT(*) FROM $table_name WHERE status IN ('PAID', 'berhasil', 'SUCCESS')");
+        $total_paid    = $wpdb->get_var("SELECT COUNT(*) FROM $table_name WHERE status IN ('PAID', 'berhasil', 'SUCCESS', 'LUNAS')");
         $total_physical= $wpdb->get_var("SELECT COUNT(*) FROM $table_name WHERE product_type = 'physical'");
-        $total_digital = $wpdb->get_var("SELECT COUNT(*) FROM $table_name WHERE product_type = 'digital'");
-        $total_revenue = $wpdb->get_var("SELECT SUM(amount) FROM $table_name WHERE status IN ('PAID', 'berhasil', 'SUCCESS')");
+        $total_revenue = $wpdb->get_var("SELECT SUM(amount) FROM $table_name WHERE status IN ('PAID', 'berhasil', 'SUCCESS', 'LUNAS')");
         ?>
         <div class="wrap" style="max-width: 1320px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
             
             <div style="display: flex; align-items: center; justify-content: space-between; margin: 20px 0 15px;">
                 <div>
-                    <h1 style="margin: 0; font-size: 24px; font-weight: 700; color: #1e293b;">📋 Data Pesanan Masuk (Produk Fisik & Digital)</h1>
-                    <p style="margin: 4px 0 0; color: #64748b; font-size: 13px;">Data transaksi iPaymu, alamat pengiriman fisik, status akses digital, dan nomor resi.</p>
+                    <h1 style="margin: 0; font-size: 24px; font-weight: 700; color: #1e293b;">📋 Data Pesanan Masuk (WhatsApp & iPaymu)</h1>
+                    <p style="margin: 4px 0 0; color: #64748b; font-size: 13px;">Data pesanan masuk, alamat pengiriman buku fisik, status pembayaran, dan nomor resi.</p>
                 </div>
                 <a href="<?php echo admin_url('admin.php?page=ipaymu-gateway-settings'); ?>" class="button button-secondary" style="font-weight: 600;">⚙️ Buka Pengaturan</a>
             </div>
@@ -214,16 +222,12 @@ class IPaymu_Custom_Gateway {
                     <div style="font-size: 22px; font-weight: 800; color: #0f172a; margin-top: 2px;"><?php echo number_format($total_orders); ?></div>
                 </div>
                 <div style="background: #fff; padding: 14px 18px; border-radius: 10px; border: 1px solid #e2e8f0;">
-                    <span style="font-size: 11px; font-weight: 600; color: #16a34a; text-transform: uppercase;">Lunas / Paid</span>
+                    <span style="font-size: 11px; font-weight: 600; color: #16a34a; text-transform: uppercase;">Sudah Lunas</span>
                     <div style="font-size: 22px; font-weight: 800; color: #16a34a; margin-top: 2px;"><?php echo number_format($total_paid); ?></div>
                 </div>
                 <div style="background: #fff; padding: 14px 18px; border-radius: 10px; border: 1px solid #e2e8f0;">
                     <span style="font-size: 11px; font-weight: 600; color: #ea580c; text-transform: uppercase;">📦 Produk Fisik</span>
                     <div style="font-size: 22px; font-weight: 800; color: #ea580c; margin-top: 2px;"><?php echo number_format($total_physical); ?></div>
-                </div>
-                <div style="background: #fff; padding: 14px 18px; border-radius: 10px; border: 1px solid #e2e8f0;">
-                    <span style="font-size: 11px; font-weight: 600; color: #7c3aed; text-transform: uppercase;">⚡ Produk Digital</span>
-                    <div style="font-size: 22px; font-weight: 800; color: #7c3aed; margin-top: 2px;"><?php echo number_format($total_digital); ?></div>
                 </div>
                 <div style="background: #fff; padding: 14px 18px; border-radius: 10px; border: 1px solid #e2e8f0;">
                     <span style="font-size: 11px; font-weight: 600; color: #2563eb; text-transform: uppercase;">Total Omset (Lunas)</span>
@@ -237,26 +241,21 @@ class IPaymu_Custom_Gateway {
                     <thead>
                         <tr style="background: #f8fafc;">
                             <th style="padding: 12px 14px; font-weight: 700; width: 45px;">ID</th>
-                            <th style="padding: 12px 14px; font-weight: 700; width: 90px;">Tipe</th>
                             <th style="padding: 12px 14px; font-weight: 700; width: 160px;">Pembeli & Kontak</th>
-                            <th style="padding: 12px 14px; font-weight: 700; width: 240px;">Detail Pengiriman / Alamat</th>
+                            <th style="padding: 12px 14px; font-weight: 700; width: 240px;">Alamat Pengiriman Paket</th>
                             <th style="padding: 12px 14px; font-weight: 700; width: 95px;">Nominal</th>
-                            <th style="padding: 12px 14px; font-weight: 700; width: 105px;">Status Bayar</th>
-                            <th style="padding: 12px 14px; font-weight: 700; width: 210px;">Status Paket / Resi</th>
+                            <th style="padding: 12px 14px; font-weight: 700; width: 110px;">Status Bayar</th>
+                            <th style="padding: 12px 14px; font-weight: 700; width: 220px;">Kurir & No. Resi</th>
                             <th style="padding: 12px 14px; font-weight: 700; width: 120px;">Waktu Order</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (!empty($orders)) : ?>
                             <?php foreach ($orders as $order) : 
-                                $is_paid = in_array(strtoupper($order->status), ['PAID', 'BERHASIL', 'SUCCESS']);
+                                $is_paid = in_array(strtoupper($order->status), ['PAID', 'BERHASIL', 'SUCCESS', 'LUNAS']);
                                 $status_badge = $is_paid 
                                     ? '<span style="background:#dcfce7; color:#15803d; padding:2px 7px; border-radius:5px; font-weight:700; font-size:10px;">✅ LUNAS</span>' 
                                     : '<span style="background:#fef9c3; color:#a16207; padding:2px 7px; border-radius:5px; font-weight:700; font-size:10px;">⏳ PENDING</span>';
-                                
-                                $type_badge = ($order->product_type === 'digital')
-                                    ? '<span style="background:#f3e8ff; color:#7e22ce; padding:2px 6px; border-radius:4px; font-weight:700; font-size:10px;">⚡ DIGITAL</span>'
-                                    : '<span style="background:#ffedd5; color:#c2410c; padding:2px 6px; border-radius:4px; font-weight:700; font-size:10px;">📦 FISIK</span>';
 
                                 $clean_phone = preg_replace('/[^0-9]/', '', $order->customer_phone);
                                 if (substr($clean_phone, 0, 1) === '0') {
@@ -267,7 +266,6 @@ class IPaymu_Custom_Gateway {
                             ?>
                                 <tr>
                                     <td style="padding: 12px 14px; font-weight: 600; color: #64748b;">#<?php echo esc_html($order->id); ?></td>
-                                    <td style="padding: 12px 14px;"><?php echo $type_badge; ?></td>
                                     <td style="padding: 12px 14px;">
                                         <div style="font-weight: 700; color: #0f172a;"><?php echo esc_html($order->customer_name); ?></div>
                                         <div style="font-size: 11px; margin-top: 2px;">
@@ -278,19 +276,15 @@ class IPaymu_Custom_Gateway {
                                         <div style="font-size: 11px; color: #64748b;"><?php echo esc_html($order->customer_email); ?></div>
                                     </td>
                                     <td style="padding: 12px 14px; font-size: 12px; line-height: 1.4;">
-                                        <?php if ($order->product_type === 'digital') : ?>
-                                            <span style="color: #6b7280; font-style: italic;">Produk Digital (Tanpa Alamat Pengiriman)</span>
-                                        <?php else : ?>
-                                            <div style="font-weight: 600; color: #1e293b;"><?php echo esc_html($order->shipping_address ?: '-'); ?></div>
-                                            <div style="color: #475569; margin-top: 2px;">
-                                                📍 <?php echo esc_html($order->shipping_subdistrict . ($order->shipping_city ? ', ' . $order->shipping_city : '')); ?>
-                                                <?php if($order->shipping_postal_code) echo ' - ' . esc_html($order->shipping_postal_code); ?>
+                                        <div style="font-weight: 600; color: #1e293b;"><?php echo esc_html($order->shipping_address ?: '-'); ?></div>
+                                        <div style="color: #475569; margin-top: 2px;">
+                                            📍 <?php echo esc_html($order->shipping_subdistrict . ($order->shipping_city ? ', ' . $order->shipping_city : '')); ?>
+                                            <?php if($order->shipping_postal_code) echo ' - ' . esc_html($order->shipping_postal_code); ?>
+                                        </div>
+                                        <?php if(!empty($order->shipping_notes)): ?>
+                                            <div style="font-size: 11px; color: #d97706; margin-top: 2px; font-style: italic;">
+                                                📝 <?php echo esc_html($order->shipping_notes); ?>
                                             </div>
-                                            <?php if(!empty($order->shipping_notes)): ?>
-                                                <div style="font-size: 11px; color: #d97706; margin-top: 2px; font-style: italic;">
-                                                    📝 Catatan: <?php echo esc_html($order->shipping_notes); ?>
-                                                </div>
-                                            <?php endif; ?>
                                         <?php endif; ?>
                                     </td>
                                     <td style="padding: 12px 14px; font-weight: 700; color: #0f172a;">Rp <?php echo number_format($order->amount, 0, ',', '.'); ?></td>
@@ -298,35 +292,37 @@ class IPaymu_Custom_Gateway {
                                     
                                     <!-- Edit Resi & Status Form -->
                                     <td style="padding: 12px 14px;">
-                                        <?php if ($order->product_type === 'digital') : ?>
-                                            <span style="font-size: 11px; color: #15803d; font-weight: 600;">⚡ Akses Otomatis via Email</span>
-                                        <?php else : ?>
-                                            <form method="post" action="" style="margin: 0;">
-                                                <?php wp_nonce_field('ipaymu_update_shipping_action'); ?>
-                                                <input type="hidden" name="order_id" value="<?php echo esc_attr($order->id); ?>">
-                                                
-                                                <div style="display: flex; gap: 4px; margin-bottom: 4px;">
-                                                    <input type="text" name="shipping_courier" value="<?php echo esc_attr($order->shipping_courier); ?>" placeholder="Kurir" style="width: 70px; font-size: 11px; padding: 2px 4px; border-radius: 4px;">
-                                                    <input type="text" name="tracking_number" value="<?php echo esc_attr($order->tracking_number); ?>" placeholder="No. Resi" style="width: 110px; font-size: 11px; padding: 2px 4px; border-radius: 4px;">
-                                                </div>
-                                                
-                                                <div style="display: flex; gap: 4px; align-items: center;">
-                                                    <select name="shipping_status" style="font-size: 10px; padding: 2px 4px; border-radius: 4px; height: 24px;">
-                                                        <option value="BELUM_DIKIRIM" <?php selected($order->shipping_status, 'BELUM_DIKIRIM'); ?>>⏳ Belum</option>
-                                                        <option value="SEDANG_DIKIRIM" <?php selected($order->shipping_status, 'SEDANG_DIKIRIM'); ?>>🚚 Dikirim</option>
-                                                        <option value="SUDAH_DIKIRIM" <?php selected($order->shipping_status, 'SUDAH_DIKIRIM'); ?>>✅ Sampai</option>
-                                                    </select>
-                                                    <button type="submit" name="ipaymu_update_shipping" class="button button-small" style="font-size: 10px; height: 24px; padding: 0 6px;">Simpan</button>
-                                                </div>
-                                            </form>
+                                        <form method="post" action="" style="margin: 0;">
+                                            <?php wp_nonce_field('ipaymu_update_shipping_action'); ?>
+                                            <input type="hidden" name="order_id" value="<?php echo esc_attr($order->id); ?>">
+                                            
+                                            <div style="display: flex; gap: 4px; margin-bottom: 4px;">
+                                                <input type="text" name="shipping_courier" value="<?php echo esc_attr($order->shipping_courier); ?>" placeholder="Kurir" style="width: 70px; font-size: 11px; padding: 2px 4px; border-radius: 4px;">
+                                                <input type="text" name="tracking_number" value="<?php echo esc_attr($order->tracking_number); ?>" placeholder="No. Resi" style="width: 110px; font-size: 11px; padding: 2px 4px; border-radius: 4px;">
+                                            </div>
+                                            
+                                            <div style="display: flex; gap: 4px; align-items: center;">
+                                                <select name="shipping_status" style="font-size: 10px; padding: 2px 4px; border-radius: 4px; height: 24px;">
+                                                    <option value="BELUM_DIKIRIM" <?php selected($order->shipping_status, 'BELUM_DIKIRIM'); ?>>⏳ Belum Kirim</option>
+                                                    <option value="SEDANG_DIKIRIM" <?php selected($order->shipping_status, 'SEDANG_DIKIRIM'); ?>>🚚 Dikirim</option>
+                                                    <option value="SUDAH_DIKIRIM" <?php selected($order->shipping_status, 'SUDAH_DIKIRIM'); ?>>✅ Sampai</option>
+                                                </select>
 
-                                            <?php if (!empty($order->tracking_number)) : ?>
-                                                <div style="margin-top: 4px;">
-                                                    <a href="https://wa.me/<?php echo esc_attr($clean_phone); ?>?text=<?php echo $wa_msg; ?>" target="_blank" style="font-size: 10px; color: #16a34a; font-weight: 700; text-decoration: none;">
-                                                        📲 Kirim Resi via WA
-                                                    </a>
-                                                </div>
-                                            <?php endif; ?>
+                                                <select name="payment_status" style="font-size: 10px; padding: 2px 4px; border-radius: 4px; height: 24px;">
+                                                    <option value="PENDING" <?php selected($order->status, 'PENDING'); ?>>Pending</option>
+                                                    <option value="LUNAS" <?php selected($order->status, 'LUNAS'); ?>>Lunas</option>
+                                                </select>
+
+                                                <button type="submit" name="ipaymu_update_shipping" class="button button-small" style="font-size: 10px; height: 24px; padding: 0 6px;">Simpan</button>
+                                            </div>
+                                        </form>
+
+                                        <?php if (!empty($order->tracking_number)) : ?>
+                                            <div style="margin-top: 4px;">
+                                                <a href="https://wa.me/<?php echo esc_attr($clean_phone); ?>?text=<?php echo $wa_msg; ?>" target="_blank" style="font-size: 10px; color: #16a34a; font-weight: 700; text-decoration: none;">
+                                                    📲 Kirim Resi via WA
+                                                </a>
+                                            </div>
                                         <?php endif; ?>
                                     </td>
 
@@ -337,7 +333,7 @@ class IPaymu_Custom_Gateway {
                             <?php endforeach; ?>
                         <?php else : ?>
                             <tr>
-                                <td colspan="8" style="text-align: center; padding: 30px; color: #94a3b8;">
+                                <td colspan="7" style="text-align: center; padding: 30px; color: #94a3b8;">
                                     Belum ada data pesanan yang masuk. Lakukan tes order dari halaman landing page.
                                 </td>
                             </tr>
@@ -351,15 +347,18 @@ class IPaymu_Custom_Gateway {
     }
 
     /**
-     * Halaman Pengaturan iPaymu Gateway & Tipe Produk di WP-Admin
+     * Halaman Pengaturan di WP-Admin
      */
     public function render_admin_settings_page() {
+        $checkout_mode= get_option('ipaymu_checkout_mode', 'whatsapp'); // whatsapp | ipaymu
+        $cs_whatsapp  = get_option('ipaymu_cs_whatsapp', '085713911142');
         $mode         = get_option('ipaymu_mode', 'sandbox');
         $product_type = get_option('ipaymu_product_type', 'physical'); // physical | digital
         $product_name = get_option('ipaymu_product_name', '50 TEKNIK MEMBUKA KELAS ANTI NGANTUK');
         $va           = get_option('ipaymu_va', '0000002410214040');
         $api_key      = get_option('ipaymu_api_key', 'SANDBOX78B457D7-E682-4217-A630-B14704B14BFA');
-        $price        = get_option('ipaymu_product_price', '99000');
+        $price        = get_option('ipaymu_product_price', '80000');
+        $normal_price = get_option('ipaymu_normal_price', '100000');
         $return_url   = get_option('ipaymu_return_url', home_url('/terima-kasih/'));
         $cancel_url   = get_option('ipaymu_cancel_url', home_url('/'));
         $notify_url   = rest_url('ipaymu/v1/notify');
@@ -370,25 +369,10 @@ class IPaymu_Custom_Gateway {
                 
                 <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #f0f0f1; padding-bottom: 15px; margin-bottom: 20px;">
                     <div>
-                        <h1 style="margin: 0; color: #1d2327; font-size: 24px; font-weight: 700;">💳 Konfigurasi iPaymu & Tipe Produk</h1>
-                        <p style="margin: 5px 0 0; color: #646970; font-size: 13px;">Pengaturan Gateway iPaymu API v2 untuk <strong>Produk Fisik (Pengiriman Paket)</strong> & <strong>Produk Digital (Akses Langsung)</strong>.</p>
+                        <h1 style="margin: 0; color: #1d2327; font-size: 24px; font-weight: 700;">⚙️ Pengaturan Pemesanan & Gateway</h1>
+                        <p style="margin: 5px 0 0; color: #646970; font-size: 13px;">Pengaturan jalur pemesanan (WhatsApp Langsung / iPaymu Gateway API v2).</p>
                     </div>
-                    <span style="background: #0052cc; color: #fff; font-weight: bold; font-size: 12px; padding: 5px 12px; border-radius: 20px;">v3.0.0 Ready</span>
-                </div>
-
-                <div style="background: #e7f3fe; border-left: 4px solid #0052cc; padding: 12px 18px; border-radius: 6px; margin-bottom: 20px; font-size: 13px; color: #0c4a6e;">
-                    <strong>💡 Shortcode Checkout untuk Halaman Anda:</strong><br>
-                    <div style="margin-top: 6px; display: flex; gap: 15px; flex-wrap: wrap;">
-                        <div>
-                            <code>[ipaymu_checkout_box]</code> <span style="color:#555;">(Mengikuti pengaturan tipe di bawah)</span>
-                        </div>
-                        <div>
-                            <code>[ipaymu_checkout_box type="physical"]</code> <span style="color:#555;">(Khusus Fisik)</span>
-                        </div>
-                        <div>
-                            <code>[ipaymu_checkout_box type="digital"]</code> <span style="color:#555;">(Khusus Digital)</span>
-                        </div>
-                    </div>
+                    <span style="background: #008a20; color: #fff; font-weight: bold; font-size: 12px; padding: 5px 12px; border-radius: 20px;">v3.1.0 Ready</span>
                 </div>
 
                 <form method="post" action="options.php">
@@ -397,21 +381,65 @@ class IPaymu_Custom_Gateway {
 
                     <table class="form-table" style="margin-top: 0;">
                         
-                        <!-- Tipe Produk Utama -->
-                        <tr>
-                            <th scope="row" style="width: 240px; font-weight: 600; font-size: 14px;">Tipe Produk Utama</th>
-                            <td>
-                                <fieldset style="background: #f8fafc; padding: 12px 16px; border-radius: 8px; border: 1px solid #e2e8f0; display: inline-block;">
-                                    <label style="margin-right: 25px; font-weight: 600; cursor: pointer;">
-                                        <input type="radio" name="ipaymu_product_type" value="physical" <?php checked($product_type, 'physical'); ?>>
-                                        <span style="color: #ea580c; margin-left: 4px;">📦 Produk Fisik (Butuh Alamat Pengiriman & Resi)</span>
+                        <!-- Jalur Pemesanan Utama (WhatsApp vs iPaymu) -->
+                        <tr style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;">
+                            <th scope="row" style="width: 240px; font-weight: 700; font-size: 14px; color: #166534; padding: 16px;">
+                                🚀 Jalur Pemesanan Saat Ini
+                            </th>
+                            <td style="padding: 16px;">
+                                <fieldset style="display: flex; gap: 20px; flex-wrap: wrap;">
+                                    <label style="font-weight: 700; cursor: pointer; color: #16a34a;">
+                                        <input type="radio" name="ipaymu_checkout_mode" value="whatsapp" <?php checked($checkout_mode, 'whatsapp'); ?>>
+                                        <span>📲 WhatsApp Langsung (Aktif Sekarang)</span>
                                     </label>
-                                    <label style="font-weight: 600; cursor: pointer;">
-                                        <input type="radio" name="ipaymu_product_type" value="digital" <?php checked($product_type, 'digital'); ?>>
-                                        <span style="color: #7c3aed; margin-left: 4px;">⚡ Produk Digital (Hanya Nama, WA & Email)</span>
+                                    <label style="font-weight: 700; cursor: pointer; color: #0284c7;">
+                                        <input type="radio" name="ipaymu_checkout_mode" value="ipaymu" <?php checked($checkout_mode, 'ipaymu'); ?>>
+                                        <span>💳 iPaymu Gateway (Pakai jika verifikasi akun selesai)</span>
                                     </label>
                                 </fieldset>
-                                <p class="description" style="margin-top: 6px;">Pilih <strong>Produk Fisik</strong> jika Anda menjual buku cetak/barang yang dikirim via kurir, atau <strong>Produk Digital</strong> untuk ebook/materi online.</p>
+                                <p class="description" style="margin-top: 6px; color: #15803d;">
+                                    Saat mode <strong>WhatsApp Langsung</strong> aktif, pembeli yang mengisi form akan diarahkan langsung chat ke WhatsApp CS dengan format pemesanan otomatis & data order tetap tersimpan di database.
+                                </p>
+                            </td>
+                        </tr>
+
+                        <!-- Nomor WhatsApp CS -->
+                        <tr>
+                            <th scope="row" style="font-weight: 600; font-size: 14px;">Nomor WhatsApp CS</th>
+                            <td>
+                                <input type="text" name="ipaymu_cs_whatsapp" value="<?php echo esc_attr($cs_whatsapp); ?>" class="regular-text" style="width: 240px; border-radius: 6px; padding: 8px 12px;" required>
+                                <p class="description">Contoh: 085713911142 atau 6285713911142.</p>
+                            </td>
+                        </tr>
+
+                        <!-- Harga Normal & Promo -->
+                        <tr>
+                            <th scope="row" style="font-weight: 600; font-size: 14px;">Harga Normal (Rp)</th>
+                            <td>
+                                <input type="number" name="ipaymu_normal_price" value="<?php echo esc_attr($normal_price); ?>" class="regular-text" style="width: 200px; border-radius: 6px; padding: 8px 12px;" required>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <th scope="row" style="font-weight: 600; font-size: 14px;">Harga Promo Pesan Hari Ini (Rp)</th>
+                            <td>
+                                <input type="number" name="ipaymu_product_price" value="<?php echo esc_attr($price); ?>" class="regular-text" style="width: 200px; border-radius: 6px; padding: 8px 12px;" required>
+                                <p class="description">Nominal promo yang ditagihkan ke pembeli (Contoh: 80000).</p>
+                            </td>
+                        </tr>
+
+                        <!-- Tipe Produk Utama -->
+                        <tr>
+                            <th scope="row" style="font-weight: 600; font-size: 14px;">Tipe Produk</th>
+                            <td>
+                                <label style="margin-right: 25px; font-weight: 600; cursor: pointer;">
+                                    <input type="radio" name="ipaymu_product_type" value="physical" <?php checked($product_type, 'physical'); ?>>
+                                    <span>📦 Produk Fisik (Buku Fisik & Butuh Alamat Pengiriman)</span>
+                                </label>
+                                <label style="font-weight: 600; cursor: pointer;">
+                                    <input type="radio" name="ipaymu_product_type" value="digital" <?php checked($product_type, 'digital'); ?>>
+                                    <span>⚡ Produk Digital</span>
+                                </label>
                             </td>
                         </tr>
 
@@ -423,20 +451,25 @@ class IPaymu_Custom_Gateway {
                             </td>
                         </tr>
 
-                        <!-- Mode Lingkungan -->
+                        <!-- Pengaturan iPaymu Gateway (Opsional jika sudah verifikasi) -->
                         <tr>
-                            <th scope="row" style="font-weight: 600; font-size: 14px;">Mode Lingkungan</th>
+                            <th colspan="2" style="padding-top: 25px; padding-bottom: 5px; border-bottom: 1px solid #e2e8f0;">
+                                <h3 style="margin: 0; color: #0284c7; font-size: 16px;">💳 Pengaturan API iPaymu (Digunakan saat Mode iPaymu Aktif)</h3>
+                            </th>
+                        </tr>
+
+                        <!-- Mode Lingkungan iPaymu -->
+                        <tr>
+                            <th scope="row" style="font-weight: 600; font-size: 14px;">Mode iPaymu</th>
                             <td>
-                                <fieldset style="background: #f8fafc; padding: 10px 14px; border-radius: 8px; border: 1px solid #e2e8f0; display: inline-block;">
-                                    <label style="margin-right: 25px; font-weight: 600; cursor: pointer;">
-                                        <input type="radio" name="ipaymu_mode" value="sandbox" <?php checked($mode, 'sandbox'); ?>>
-                                        <span style="color: #d63638; margin-left: 4px;">🧪 Sandbox (Testing)</span>
-                                    </label>
-                                    <label style="font-weight: 600; cursor: pointer;">
-                                        <input type="radio" name="ipaymu_mode" value="live" <?php checked($mode, 'live'); ?>>
-                                        <span style="color: #008a20; margin-left: 4px;">🚀 Production (Live)</span>
-                                    </label>
-                                </fieldset>
+                                <label style="margin-right: 25px; font-weight: 600; cursor: pointer;">
+                                    <input type="radio" name="ipaymu_mode" value="sandbox" <?php checked($mode, 'sandbox'); ?>>
+                                    <span style="color: #d63638;">🧪 Sandbox (Testing)</span>
+                                </label>
+                                <label style="font-weight: 600; cursor: pointer;">
+                                    <input type="radio" name="ipaymu_mode" value="live" <?php checked($mode, 'live'); ?>>
+                                    <span style="color: #008a20;">🚀 Production (Live)</span>
+                                </label>
                             </td>
                         </tr>
 
@@ -444,7 +477,7 @@ class IPaymu_Custom_Gateway {
                         <tr>
                             <th scope="row" style="font-weight: 600; font-size: 14px;">Virtual Account (VA)</th>
                             <td>
-                                <input type="text" name="ipaymu_va" value="<?php echo esc_attr($va); ?>" class="regular-text" style="width: 100%; max-width: 420px; border-radius: 6px; padding: 8px 12px;" required>
+                                <input type="text" name="ipaymu_va" value="<?php echo esc_attr($va); ?>" class="regular-text" style="width: 100%; max-width: 420px; border-radius: 6px; padding: 8px 12px;">
                             </td>
                         </tr>
 
@@ -452,46 +485,22 @@ class IPaymu_Custom_Gateway {
                         <tr>
                             <th scope="row" style="font-weight: 600; font-size: 14px;">API Key</th>
                             <td>
-                                <input type="password" name="ipaymu_api_key" value="<?php echo esc_attr($api_key); ?>" class="regular-text" style="width: 100%; max-width: 420px; border-radius: 6px; padding: 8px 12px;" required>
-                            </td>
-                        </tr>
-
-                        <!-- Harga Produk -->
-                        <tr>
-                            <th scope="row" style="font-weight: 600; font-size: 14px;">Harga Produk (Rp)</th>
-                            <td>
-                                <input type="number" name="ipaymu_product_price" value="<?php echo esc_attr($price); ?>" class="regular-text" style="width: 220px; border-radius: 6px; padding: 8px 12px;" required>
+                                <input type="password" name="ipaymu_api_key" value="<?php echo esc_attr($api_key); ?>" class="regular-text" style="width: 100%; max-width: 420px; border-radius: 6px; padding: 8px 12px;">
                             </td>
                         </tr>
 
                         <!-- Return URL -->
                         <tr>
-                            <th scope="row" style="font-weight: 600; font-size: 14px;">Return URL (Halaman Sukses)</th>
+                            <th scope="row" style="font-weight: 600; font-size: 14px;">Return URL</th>
                             <td>
-                                <input type="url" name="ipaymu_return_url" value="<?php echo esc_attr($return_url); ?>" class="regular-text" style="width: 100%; max-width: 520px; border-radius: 6px; padding: 8px 12px;" required>
-                            </td>
-                        </tr>
-
-                        <!-- Cancel URL -->
-                        <tr>
-                            <th scope="row" style="font-weight: 600; font-size: 14px;">Cancel URL (Halaman Batal)</th>
-                            <td>
-                                <input type="url" name="ipaymu_cancel_url" value="<?php echo esc_attr($cancel_url); ?>" class="regular-text" style="width: 100%; max-width: 520px; border-radius: 6px; padding: 8px 12px;">
-                            </td>
-                        </tr>
-
-                        <!-- Webhook Notification URL -->
-                        <tr>
-                            <th scope="row" style="font-weight: 600; font-size: 14px;">Webhook / Notify URL</th>
-                            <td>
-                                <input type="text" value="<?php echo esc_attr($notify_url); ?>" class="regular-text" style="width: 100%; max-width: 520px; background: #f0f0f1; border-radius: 6px; padding: 8px 12px; color: #50575e;" readonly>
+                                <input type="url" name="ipaymu_return_url" value="<?php echo esc_attr($return_url); ?>" class="regular-text" style="width: 100%; max-width: 520px; border-radius: 6px; padding: 8px 12px;">
                             </td>
                         </tr>
 
                     </table>
 
                     <div style="margin-top: 25px; padding-top: 15px; border-top: 1px solid #f0f0f1;">
-                        <?php submit_button('💾 Simpan Pengaturan', 'primary', 'submit', false, ['style' => 'background: #0052cc; border-color: #0052cc; padding: 8px 24px; font-weight: bold; border-radius: 6px; font-size: 14px; cursor: pointer;']); ?>
+                        <?php submit_button('💾 Simpan Pengaturan', 'primary', 'submit', false, ['style' => 'background: #008a20; border-color: #008a20; padding: 8px 24px; font-weight: bold; border-radius: 6px; font-size: 14px; cursor: pointer;']); ?>
                     </div>
                 </form>
 
@@ -501,17 +510,25 @@ class IPaymu_Custom_Gateway {
     }
 
     /**
-     * Shortcode [ipaymu_checkout_box type="physical|digital"]
-     * Desain Form Ultra Rapi, Modern, dan Presisi
+     * Shortcode [ipaymu_checkout_box]
+     * Mendukung Jalur Pemesanan WhatsApp & iPaymu Otomatis
      */
     public function render_checkout_box_shortcode($atts) {
-        $default_type = get_option('ipaymu_product_type', 'physical');
-        $args = shortcode_atts(['type' => $default_type], $atts);
-        $type = in_array(strtolower($args['type']), ['digital', 'online']) ? 'digital' : 'physical';
+        $checkout_mode = get_option('ipaymu_checkout_mode', 'whatsapp'); // whatsapp | ipaymu
+        $cs_phone      = get_option('ipaymu_cs_whatsapp', '085713911142');
+        $clean_cs      = preg_replace('/[^0-9]/', '', $cs_phone);
+        if (substr($clean_cs, 0, 1) === '0') {
+            $clean_cs = '62' . substr($clean_cs, 1);
+        }
 
-        $price = (int) get_option('ipaymu_product_price', 99000);
-        $product_name = get_option('ipaymu_product_name', '50 TEKNIK MEMBUKA KELAS ANTI NGANTUK');
-        $ajax_url = admin_url('admin-ajax.php');
+        $default_type  = get_option('ipaymu_product_type', 'physical');
+        $args          = shortcode_atts(['type' => $default_type], $atts);
+        $type          = in_array(strtolower($args['type']), ['digital', 'online']) ? 'digital' : 'physical';
+
+        $price         = (int) get_option('ipaymu_product_price', 80000);
+        $normal_price  = (int) get_option('ipaymu_normal_price', 100000);
+        $product_name  = get_option('ipaymu_product_name', '50 TEKNIK MEMBUKA KELAS ANTI NGANTUK');
+        $ajax_url      = admin_url('admin-ajax.php');
 
         ob_start();
         ?>
@@ -526,14 +543,14 @@ class IPaymu_Custom_Gateway {
                     </span>
                     
                     <div style="display: flex; align-items: baseline; justify-content: center; gap: 8px; margin-top: 4px;">
-                        <span style="font-size: 13px; color: #94a3b8; text-decoration: line-through;">Rp 199.000</span>
+                        <span style="font-size: 13px; color: #94a3b8; text-decoration: line-through;">Rp <?php echo number_format($normal_price, 0, ',', '.'); ?></span>
                         <span style="font-size: 28px; font-weight: 900; color: #0f172a; letter-spacing: -0.5px;">Rp <?php echo number_format($price, 0, ',', '.'); ?></span>
                         <span style="font-size: 11px; font-weight: 600; color: #64748b;"><?php echo ($type === 'physical') ? '/ buku fisik' : '/ akses instan'; ?></span>
                     </div>
-                    <p style="font-size: 11px; color: #64748b; margin: 4px 0 0;">Pembayaran Resmi & Otomatis via iPaymu Gateway</p>
+                    <p style="font-size: 11px; color: #16a34a; font-weight: 700; margin: 4px 0 0;">🔥 Hemat Rp <?php echo number_format($normal_price - $price, 0, ',', '.'); ?> khusus pemesanan hari ini</p>
                 </div>
 
-                <form id="ipaymu-order-form-<?php echo esc_attr($type); ?>" onsubmit="submitIpaymuOrder(event, '<?php echo esc_attr($type); ?>')" style="margin: 0;">
+                <form id="ipaymu-order-form-<?php echo esc_attr($type); ?>" onsubmit="submitUnifiedOrder(event, '<?php echo esc_attr($type); ?>', '<?php echo esc_attr($checkout_mode); ?>', '<?php echo esc_attr($clean_cs); ?>', <?php echo $price; ?>)" style="margin: 0;">
                     
                     <!-- SECTION 1: DATA PEMESAN -->
                     <div style="margin-bottom: 16px;">
@@ -544,7 +561,7 @@ class IPaymu_Custom_Gateway {
 
                         <div style="margin-bottom: 10px; text-align: left;">
                             <label style="display: block; font-size: 11px; font-weight: 700; color: #334155; margin-bottom: 4px;">Nama Lengkap Penerima <span style="color:#ef4444;">*</span></label>
-                            <input type="text" id="cust_name_<?php echo esc_attr($type); ?>" placeholder="Contoh: Budi Santoso, S.Pd." required style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 13px; background: #f8fafc; box-sizing: border-box; outline: none; transition: border-color 0.2s;">
+                            <input type="text" id="cust_name_<?php echo esc_attr($type); ?>" placeholder="Contoh: Budi Santoso, S.Pd." required style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 13px; background: #f8fafc; box-sizing: border-box; outline: none;">
                         </div>
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left;">
@@ -553,8 +570,8 @@ class IPaymu_Custom_Gateway {
                                 <input type="tel" id="cust_phone_<?php echo esc_attr($type); ?>" placeholder="08xxxxxxxxxx" required style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 13px; background: #f8fafc; box-sizing: border-box; outline: none;">
                             </div>
                             <div>
-                                <label style="display: block; font-size: 11px; font-weight: 700; color: #334155; margin-bottom: 4px;">Email Aktif <span style="color:#ef4444;">*</span></label>
-                                <input type="email" id="cust_email_<?php echo esc_attr($type); ?>" placeholder="email@gmail.com" required style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 13px; background: #f8fafc; box-sizing: border-box; outline: none;">
+                                <label style="display: block; font-size: 11px; font-weight: 700; color: #334155; margin-bottom: 4px;">Email Aktif</label>
+                                <input type="email" id="cust_email_<?php echo esc_attr($type); ?>" placeholder="email@gmail.com" style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 13px; background: #f8fafc; box-sizing: border-box; outline: none;">
                             </div>
                         </div>
                     </div>
@@ -596,39 +613,29 @@ class IPaymu_Custom_Gateway {
                     </div>
                     <?php endif; ?>
 
-                    <!-- SECTION 3: METODE PEMBAYARAN -->
-                    <div style="background: #f8fafc; border-radius: 14px; padding: 12px 14px; border: 1px solid #e2e8f0; margin-bottom: 16px; text-align: left;">
-                        <div style="font-size: 10px; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
-                            <span>Metode Pembayaran (iPaymu):</span>
-                            <span style="background: #dcfce7; color: #15803d; padding: 1px 7px; border-radius: 4px; font-size: 9px; font-weight: 700;">Realtime & Otomatis</span>
-                        </div>
-                        <div style="display: flex; flex-wrap: wrap; gap: 5px; font-size: 10px; font-weight: 700; color: #475569;">
-                            <span style="background: #fff; padding: 3px 7px; border-radius: 5px; border: 1px solid #e2e8f0;">QRIS (Semua E-Wallet)</span>
-                            <span style="background: #fff; padding: 3px 7px; border-radius: 5px; border: 1px solid #e2e8f0;">BCA VA</span>
-                            <span style="background: #fff; padding: 3px 7px; border-radius: 5px; border: 1px solid #e2e8f0;">Mandiri VA</span>
-                            <span style="background: #fff; padding: 3px 7px; border-radius: 5px; border: 1px solid #e2e8f0;">BRI / BNI</span>
-                        </div>
-                    </div>
-
                     <!-- Submit Button -->
-                    <button type="submit" id="btn_submit_<?php echo esc_attr($type); ?>" style="width: 100%; background: linear-gradient(135deg, #ff7a00, #ffa800, #10b981); color: #ffffff; font-weight: 800; font-size: 14px; padding: 14px; border-radius: 14px; border: none; cursor: pointer; box-shadow: 0 10px 22px -5px rgba(255,122,0,0.35); transition: transform 0.2s, opacity 0.2s;">
-                        <?php echo ($type === 'physical') ? '📦 LANJUT BAYAR & KIRIM BUKU FISIK' : '⚡ BAYAR SEKARANG VIA IPAYMU'; ?>
+                    <button type="submit" id="btn_submit_<?php echo esc_attr($type); ?>" style="width: 100%; background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; font-weight: 800; font-size: 14px; padding: 14px; border-radius: 14px; border: none; cursor: pointer; box-shadow: 0 10px 22px -5px rgba(16,185,129,0.4); transition: transform 0.2s, opacity 0.2s;">
+                        <?php if ($checkout_mode === 'whatsapp') : ?>
+                            📲 PESAN SEKARANG VIA WHATSAPP (RP <?php echo number_format($price, 0, ',', '.'); ?>)
+                        <?php else : ?>
+                            💳 BAYAR SEKARANG VIA IPAYMU (RP <?php echo number_format($price, 0, ',', '.'); ?>)
+                        <?php endif; ?>
                     </button>
                     
-                    <div style="display: flex; items-center; justify-content: center; gap: 5px; margin-top: 8px; font-size: 10px; color: #94a3b8;">
-                        <span>🔒 256-bit SSL Encrypted</span>
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 5px; margin-top: 10px; font-size: 10px; color: #94a3b8;">
+                        <span>🔒 Pesanan Resmi Kang Deden Gurame</span>
                         <span>•</span>
-                        <span>iPaymu Verified Merchant</span>
+                        <span>CS Aktif 24 Jam</span>
                     </div>
                 </form>
 
                 <!-- CS Support -->
                 <div style="text-align: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid #f1f5f9;">
                     <p style="font-size: 11px; color: #64748b; margin: 0 0 4px;">Butuh bantuan pesanan atau tanya jawab?</p>
-                    <a href="https://wa.me/6285713911142?text=Halo%20CS%20Kang%20Deden%20Gurame,%20saya%20butuh%20bantuan%20pemesanan%2050%20Teknik%20Membuka%20Kelas%20Anti%20Ngantuk." 
+                    <a href="https://wa.me/<?php echo esc_attr($clean_cs); ?>?text=Halo%20CS%20Kang%20Deden%20Gurame,%20saya%20butuh%20bantuan%20pemesanan%2050%20Teknik%20Membuka%20Kelas%20Anti%20Ngantuk." 
                        target="_blank" 
                        style="display: inline-block; font-size: 11px; font-weight: 700; color: #059669; text-decoration: none; background: #ecfdf5; padding: 5px 12px; border-radius: 8px; border: 1px solid #a7f3d0;">
-                        📲 Hubungi CS WhatsApp: 0857-1391-1142
+                        📲 Hubungi CS WhatsApp: <?php echo esc_html($cs_phone); ?>
                     </a>
                 </div>
 
@@ -636,21 +643,21 @@ class IPaymu_Custom_Gateway {
         </div>
 
         <script>
-        function submitIpaymuOrder(e, prodType) {
+        function submitUnifiedOrder(e, prodType, mode, csPhone, price) {
             e.preventDefault();
             var btn = document.getElementById('btn_submit_' + prodType);
-            var name = document.getElementById('cust_name_' + prodType).value;
-            var phone = document.getElementById('cust_phone_' + prodType).value;
-            var email = document.getElementById('cust_email_' + prodType).value;
+            var name = document.getElementById('cust_name_' + prodType).value.trim();
+            var phone = document.getElementById('cust_phone_' + prodType).value.trim();
+            var email = document.getElementById('cust_email_' + prodType).value.trim() || '-';
 
-            var address = (prodType === 'physical') ? document.getElementById('ship_address_' + prodType).value : '';
-            var subdistrict = (prodType === 'physical') ? document.getElementById('ship_subdistrict_' + prodType).value : '';
-            var city = (prodType === 'physical') ? document.getElementById('ship_city_' + prodType).value : '';
-            var postal = (prodType === 'physical' && document.getElementById('ship_postal_' + prodType)) ? document.getElementById('ship_postal_' + prodType).value : '';
-            var notes = (prodType === 'physical' && document.getElementById('ship_notes_' + prodType)) ? document.getElementById('ship_notes_' + prodType).value : '';
+            var address = (prodType === 'physical') ? document.getElementById('ship_address_' + prodType).value.trim() : '';
+            var subdistrict = (prodType === 'physical') ? document.getElementById('ship_subdistrict_' + prodType).value.trim() : '';
+            var city = (prodType === 'physical') ? document.getElementById('ship_city_' + prodType).value.trim() : '';
+            var postal = (prodType === 'physical' && document.getElementById('ship_postal_' + prodType)) ? document.getElementById('ship_postal_' + prodType).value.trim() : '';
+            var notes = (prodType === 'physical' && document.getElementById('ship_notes_' + prodType)) ? document.getElementById('ship_notes_' + prodType).value.trim() : '';
 
-            if(!name || !phone || !email) {
-                alert('Mohon lengkapi Nama, WhatsApp, dan Email Anda.');
+            if(!name || !phone) {
+                alert('Mohon lengkapi Nama Lengkap dan No. WhatsApp.');
                 return;
             }
 
@@ -659,9 +666,7 @@ class IPaymu_Custom_Gateway {
                 return;
             }
 
-            btn.innerHTML = '⏳ Menghubungkan ke iPaymu Gateway...';
-            btn.disabled = true;
-
+            // Simpan data order ke database via AJAX secara background
             var formData = new URLSearchParams();
             formData.append('action', 'ipaymu_submit_order');
             formData.append('product_type', prodType);
@@ -673,29 +678,58 @@ class IPaymu_Custom_Gateway {
             formData.append('city', city);
             formData.append('postal', postal);
             formData.append('notes', notes);
+            formData.append('checkout_mode', mode);
 
-            fetch('<?php echo esc_url($ajax_url); ?>', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: formData
-            })
-            .then(function(res){ return res.json(); })
-            .then(function(data){
-                if(data.success && data.data.payment_url) {
-                    window.location.href = data.data.payment_url;
-                } else {
+            if(mode === 'whatsapp') {
+                btn.innerHTML = '⏳ Menghubungkan ke WhatsApp CS...';
+                
+                // Kirim request background simpan database
+                fetch('<?php echo esc_url($ajax_url); ?>', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData
+                }).catch(function(err){ console.log(err); });
+
+                // Format teks WhatsApp
+                var waText = "Halo Kang Deden Gurame / CS,%0A%0ASaya ingin memesan *50 TEKNIK MEMBUKA KELAS ANTI NGANTUK* dengan *Harga Promo Hari Ini Rp " + price.toLocaleString('id-ID') + "* (Hemat Rp 20.000):%0A%0A" +
+                             "👤 *Nama Penerima:* " + encodeURIComponent(name) + "%0A" +
+                             "📱 *No. WhatsApp:* " + encodeURIComponent(phone) + "%0A" +
+                             "📧 *Email:* " + encodeURIComponent(email) + "%0A" +
+                             (prodType === 'physical' ? ("🏠 *Alamat:* " + encodeURIComponent(address) + "%0A📍 *Kecamatan:* " + encodeURIComponent(subdistrict) + "%0A🏙️ *Kota/Kab:* " + encodeURIComponent(city) + "%0A") : "") +
+                             "💰 *Total Tagihan:* Rp " + price.toLocaleString('id-ID') + "%0A%0A" +
+                             "Mohon nomor rekening/info pembayaran dan konfirmasi pesanannya. Terima kasih!";
+
+                setTimeout(function(){
+                    btn.innerHTML = '📲 PESAN SEKARANG VIA WHATSAPP (RP ' + price.toLocaleString('id-ID') + ')';
+                    window.open('https://wa.me/' + csPhone + '?text=' + waText, '_blank');
+                }, 300);
+
+            } else {
+                btn.innerHTML = '⏳ Menghubungkan ke iPaymu Gateway...';
+                btn.disabled = true;
+
+                fetch('<?php echo esc_url($ajax_url); ?>', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData
+                })
+                .then(function(res){ return res.json(); })
+                .then(function(data){
+                    if(data.success && data.data.payment_url) {
+                        window.location.href = data.data.payment_url;
+                    } else {
+                        btn.disabled = false;
+                        btn.innerHTML = '💳 BAYAR SEKARANG VIA IPAYMU (RP ' + price.toLocaleString('id-ID') + ')';
+                        alert(data.data.message || 'Terjadi kendala saat memproses iPaymu.');
+                    }
+                })
+                .catch(function(err){
                     btn.disabled = false;
-                    btn.innerHTML = (prodType === 'physical') ? '📦 LANJUT BAYAR & KIRIM BUKU FISIK' : '⚡ BAYAR SEKARANG VIA IPAYMU';
-                    alert(data.data.message || 'Terjadi kendala saat memproses pembayaran iPaymu.');
-                }
-            })
-            .catch(function(err){
-                btn.disabled = false;
-                btn.innerHTML = (prodType === 'physical') ? '📦 LANJUT BAYAR & KIRIM BUKU FISIK' : '⚡ BAYAR SEKARANG VIA IPAYMU';
-                console.error(err);
-                alert('Mengarahkan ke CS WhatsApp...');
-                window.location.href = 'https://wa.me/6285713911142?text=Halo%20CS,%20saya%20ingin%20memesan%20dengan%20Nama:%20' + encodeURIComponent(name);
-            });
+                    btn.innerHTML = '💳 BAYAR SEKARANG VIA IPAYMU (RP ' + price.toLocaleString('id-ID') + ')';
+                    alert('Mengarahkan ke WhatsApp CS...');
+                    window.location.href = 'https://wa.me/' + csPhone + '?text=Halo%20CS,%20saya%20ingin%20memesan%20dengan%20Nama:%20' + encodeURIComponent(name);
+                });
+            }
         }
         </script>
         <?php
@@ -716,36 +750,70 @@ class IPaymu_Custom_Gateway {
     }
 
     /**
-     * Memproses submit order & MENYIMPAN DATA (FISIK / DIGITAL) KE DATABASE
+     * Memproses submit order & MENYIMPAN KE DATABASE
      */
     public function handle_order_submission() {
         global $wpdb;
         $table_name = $wpdb->prefix . 'ipaymu_orders';
 
-        $product_type = isset($_POST['product_type']) ? sanitize_text_field($_POST['product_type']) : get_option('ipaymu_product_type', 'physical');
-        $name        = isset($_POST['name']) ? sanitize_text_field($_POST['name']) : '';
-        $phone       = isset($_POST['phone']) ? sanitize_text_field($_POST['phone']) : '';
-        $email       = isset($_POST['email']) ? sanitize_email($_POST['email']) : '';
-        $address     = isset($_POST['address']) ? sanitize_textarea_field($_POST['address']) : '';
-        $subdistrict = isset($_POST['subdistrict']) ? sanitize_text_field($_POST['subdistrict']) : '';
-        $city        = isset($_POST['city']) ? sanitize_text_field($_POST['city']) : '';
-        $postal      = isset($_POST['postal']) ? sanitize_text_field($_POST['postal']) : '';
-        $notes       = isset($_POST['notes']) ? sanitize_textarea_field($_POST['notes']) : '';
+        $checkout_mode = isset($_POST['checkout_mode']) ? sanitize_text_field($_POST['checkout_mode']) : get_option('ipaymu_checkout_mode', 'whatsapp');
+        $product_type  = isset($_POST['product_type']) ? sanitize_text_field($_POST['product_type']) : get_option('ipaymu_product_type', 'physical');
+        $name          = isset($_POST['name']) ? sanitize_text_field($_POST['name']) : '';
+        $phone         = isset($_POST['phone']) ? sanitize_text_field($_POST['phone']) : '';
+        $email         = isset($_POST['email']) ? sanitize_email($_POST['email']) : '';
+        $address       = isset($_POST['address']) ? sanitize_textarea_field($_POST['address']) : '';
+        $subdistrict   = isset($_POST['subdistrict']) ? sanitize_text_field($_POST['subdistrict']) : '';
+        $city          = isset($_POST['city']) ? sanitize_text_field($_POST['city']) : '';
+        $postal        = isset($_POST['postal']) ? sanitize_text_field($_POST['postal']) : '';
+        $notes         = isset($_POST['notes']) ? sanitize_textarea_field($_POST['notes']) : '';
 
-        if (empty($name) || empty($phone) || empty($email)) {
-            wp_send_json_error(['message' => 'Mohon lengkapi Nama, WhatsApp, dan Email Anda.']);
+        if (empty($name) || empty($phone)) {
+            wp_send_json_error(['message' => 'Mohon lengkapi Nama dan WhatsApp Anda.']);
         }
 
+        $price        = (int) get_option('ipaymu_product_price', 80000);
+        $product_name = get_option('ipaymu_product_name', '50 TEKNIK MEMBUKA KELAS ANTI NGANTUK');
+        $reference_id = 'ORDER-' . time() . rand(100, 999);
+
+        // Jika mode WhatsApp: simpan order ke database lalu return success
+        if ($checkout_mode === 'whatsapp') {
+            $this->create_orders_database_table();
+            $wpdb->insert(
+                $table_name,
+                [
+                    'reference_id'         => $reference_id,
+                    'product_type'         => $product_type,
+                    'product_name'         => $product_name,
+                    'customer_name'        => $name,
+                    'customer_phone'       => $phone,
+                    'customer_email'       => $email,
+                    'shipping_address'     => $address,
+                    'shipping_subdistrict' => $subdistrict,
+                    'shipping_city'        => $city,
+                    'shipping_postal_code' => $postal,
+                    'shipping_notes'       => $notes,
+                    'shipping_status'      => 'BELUM_DIKIRIM',
+                    'amount'               => $price,
+                    'payment_method'       => 'whatsapp',
+                    'payment_channel'      => 'WhatsApp CS',
+                    'status'               => 'PENDING',
+                    'environment'          => 'whatsapp',
+                    'created_at'           => current_time('mysql'),
+                    'updated_at'           => current_time('mysql'),
+                ]
+            );
+
+            wp_send_json_success(['mode' => 'whatsapp', 'reference_id' => $reference_id]);
+            wp_die();
+        }
+
+        // Jika mode iPaymu: Proses ke API Gateway iPaymu
         $mode       = get_option('ipaymu_mode', 'sandbox');
         $va         = get_option('ipaymu_va', '0000002410214040');
         $apiKey     = get_option('ipaymu_api_key', 'SANDBOX78B457D7-E682-4217-A630-B14704B14BFA');
-        $price      = (int) get_option('ipaymu_product_price', 99000);
-        $product_name = get_option('ipaymu_product_name', '50 TEKNIK MEMBUKA KELAS ANTI NGANTUK');
         $return_url = get_option('ipaymu_return_url', home_url('/terima-kasih/'));
         $cancel_url = get_option('ipaymu_cancel_url', home_url('/'));
         $notify_url = rest_url('ipaymu/v1/notify');
-
-        $reference_id = 'ORDER-' . time() . rand(100, 999);
 
         $baseUrl  = ($mode === 'live') ? 'https://my.ipaymu.com/api/v2' : 'https://sandbox.ipaymu.com/api/v2';
         $endpoint = $baseUrl . '/payment';
@@ -753,7 +821,7 @@ class IPaymu_Custom_Gateway {
         $body = [
             'name'        => $name,
             'phone'       => $phone,
-            'email'       => $email,
+            'email'       => !empty($email) ? $email : 'pembeli@gmail.com',
             'amount'      => $price,
             'notifyUrl'   => $notify_url,
             'returnUrl'   => $return_url,
@@ -762,7 +830,7 @@ class IPaymu_Custom_Gateway {
             'product'     => [$product_name],
             'qty'         => [1],
             'price'       => [$price],
-            'description' => ($product_type === 'physical') ? 'Pemesanan Buku Fisik ' . $product_name : 'Pemesanan Digital ' . $product_name
+            'description' => 'Pemesanan Buku Fisik ' . $product_name
         ];
 
         $jsonBody  = json_encode($body, JSON_UNESCAPED_SLASHES);
@@ -791,7 +859,6 @@ class IPaymu_Custom_Gateway {
             $payment_url = $result['Data']['Url'];
             $session_id  = $result['Data']['SessionID'] ?? '';
 
-            // 💾 SIMPAN ORDER KE DATABASE
             $this->create_orders_database_table();
             $wpdb->insert(
                 $table_name,
@@ -807,16 +874,16 @@ class IPaymu_Custom_Gateway {
                     'shipping_city'        => $city,
                     'shipping_postal_code' => $postal,
                     'shipping_notes'       => $notes,
-                    'shipping_status'      => ($product_type === 'digital') ? 'DIGITAL_ACCESS' : 'BELUM_DIKIRIM',
+                    'shipping_status'      => 'BELUM_DIKIRIM',
                     'amount'               => $price,
+                    'payment_method'       => 'ipaymu',
                     'payment_url'          => $payment_url,
                     'session_id'           => $session_id,
                     'status'               => 'PENDING',
                     'environment'          => $mode,
                     'created_at'           => current_time('mysql'),
                     'updated_at'           => current_time('mysql'),
-                ],
-                ['%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s', '%s', '%s']
+                ]
             );
 
             wp_send_json_success([
@@ -834,7 +901,7 @@ class IPaymu_Custom_Gateway {
     }
 
     /**
-     * Webhook Handler: Update Status Pembayaran
+     * Webhook Handler: Update Status Pembayaran iPaymu
      */
     public function handle_webhook_notification($request) {
         global $wpdb;
@@ -849,7 +916,7 @@ class IPaymu_Custom_Gateway {
 
         if (!empty($refId)) {
             $payment_channel = trim($via . ' ' . $channel);
-            $new_status = ($status === 'berhasil' || $status === 'PAID') ? 'PAID' : $status;
+            $new_status = ($status === 'berhasil' || $status === 'PAID') ? 'LUNAS' : $status;
 
             $wpdb->update(
                 $table_name,
@@ -859,9 +926,7 @@ class IPaymu_Custom_Gateway {
                     'payment_channel' => !empty($payment_channel) ? $payment_channel : 'iPaymu',
                     'updated_at'      => current_time('mysql')
                 ],
-                ['reference_id' => $refId],
-                ['%s', '%s', '%s', '%s'],
-                ['%s']
+                ['reference_id' => $refId]
             );
 
             error_log("iPaymu Webhook Updated: Ref $refId -> Status: $new_status, TRX: $trxId");
