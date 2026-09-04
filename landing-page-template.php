@@ -223,17 +223,23 @@
                         if ($display_normal == 99000 || $display_normal <= 0) $display_normal = 100000;
                         ?>
 
-                        <div class="mb-3 sm:mb-4">
-                            <div class="flex items-center gap-2">
+                        <div class="mb-3 sm:mb-4 bg-amber-50/60 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-amber-200/80 text-left">
+                            <div class="flex items-center gap-2 mb-1 flex-wrap">
                                 <?php if ($display_normal > $display_price): ?>
-                                    <span class="text-xs text-slate-400 line-through">Rp <?php echo number_format($display_normal, 0, ',', '.'); ?></span>
-                                    <span class="bg-red-100 text-red-700 text-[9px] sm:text-[10px] font-black px-1.5 py-0.2 rounded-full">Hemat Rp <?php echo number_format($display_normal - $display_price, 0, ',', '.'); ?> (Pesan Hari Ini)</span>
+                                    <span class="text-xs sm:text-sm text-slate-400 line-through font-semibold">Rp <?php echo number_format($display_normal, 0, ',', '.'); ?></span>
+                                    <span class="bg-red-500 text-white text-[9px] sm:text-[10px] font-extrabold px-2 py-0.5 rounded-full shadow-xs">
+                                        Hemat Rp <?php echo number_format($display_normal - $display_price, 0, ',', '.'); ?>
+                                    </span>
                                 <?php endif; ?>
                             </div>
-                            <div class="flex items-baseline gap-1 mt-0.5">
-                                <span class="text-xs font-bold text-slate-600">Rp</span>
-                                <span class="font-heading font-black text-2xl xs:text-3xl sm:text-4xl text-slate-900"><?php echo number_format($display_price, 0, ',', '.'); ?></span>
-                                <span class="text-[10px] sm:text-xs text-slate-500 font-medium">/ flashcard fisik</span>
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-xs sm:text-sm font-extrabold text-slate-700">Rp</span>
+                                <span class="font-heading font-black text-2xl xs:text-3xl sm:text-4xl text-slate-950 tracking-tight"><?php echo number_format($display_price, 0, ',', '.'); ?></span>
+                                <span class="text-[11px] sm:text-xs text-slate-500 font-bold ml-1">/ flashcard fisik</span>
+                            </div>
+                            <div class="mt-1.5 pt-1.5 border-t border-amber-200/60 text-[10px] sm:text-xs text-emerald-700 font-bold flex items-center gap-1">
+                                <span>🔥</span>
+                                <span>Hemat Rp <?php echo number_format($display_normal - $display_price, 0, ',', '.'); ?> khusus pemesanan hari ini</span>
                             </div>
                         </div>
 
@@ -433,15 +439,15 @@
                 </p>
             </div>
 
-            <!-- Video Player Container (Vertical Shorts Aspect Ratio Container with High-Res Cover) -->
-            <div class="max-w-sm sm:max-w-md mx-auto" x-data="{ isPlaying: false }">
+            <!-- Video Player Container (Vertical Shorts Aspect Ratio Container with High-Res Cover & 1-Click Play) -->
+            <div class="max-w-sm sm:max-w-md mx-auto" id="video-demo-container">
                 <div class="relative bg-slate-950 rounded-2xl sm:rounded-3xl p-2 sm:p-3 shadow-2xl border-2 sm:border-4 border-amber-300">
                     <div class="relative w-full overflow-hidden rounded-xl sm:rounded-2xl bg-black shadow-inner" style="padding-top: 177.77%;">
                         
                         <!-- High Quality Custom Thumbnail Cover (Sebelum diplay) -->
-                        <div x-show="!isPlaying" 
-                             @click="isPlaying = true" 
-                             class="absolute inset-0 w-full h-full cursor-pointer group select-none z-10">
+                        <div id="video-cover" 
+                             onclick="playShortsVideo()" 
+                             class="absolute inset-0 w-full h-full cursor-pointer group select-none z-10 transition-opacity duration-300">
                             
                             <!-- High Resolution Vertical HD YouTube Shorts Thumbnail (720x1280 - Full Frame 9:16) -->
                             <img src="https://i.ytimg.com/vi/UOqIGm2l6Hg/oar2.jpg" 
@@ -452,7 +458,7 @@
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/30 group-hover:from-black/60 transition-colors duration-300"></div>
 
                             <!-- Animated Pulsing Play Button -->
-                            <div class="absolute inset-0 flex flex-col items-center justify-center p-4">
+                            <div class="absolute inset-0 flex flex-col items-center justify-center p-4 pointer-events-none">
                                 <div class="relative flex items-center justify-center">
                                     <div class="absolute w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-red-600/40 animate-ping"></div>
                                     <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-red-600 to-rose-500 text-white flex items-center justify-center shadow-2xl border-2 border-white transform group-hover:scale-110 transition-transform duration-200">
@@ -465,26 +471,29 @@
                             </div>
 
                             <!-- Top Floating Badge -->
-                            <div class="absolute top-3 left-3 bg-red-600/90 backdrop-blur-sm text-white text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-lg shadow border border-white/30 flex items-center gap-1.5">
+                            <div class="absolute top-3 left-3 bg-red-600/90 backdrop-blur-sm text-white text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-lg shadow border border-white/30 flex items-center gap-1.5 pointer-events-none">
                                 <i class="fa-brands fa-youtube text-sm"></i>
                                 <span>Demo Produk</span>
                             </div>
                         </div>
 
-                        <!-- YouTube Iframe (Dimuat dan diputar instan saat diklik) -->
-                        <template x-if="isPlaying">
-                            <iframe 
-                                class="absolute top-0 left-0 w-full h-full rounded-xl sm:rounded-2xl"
-                                src="https://www.youtube.com/embed/UOqIGm2l6Hg?autoplay=1&rel=0&modestbranding=1" 
-                                title="Demo Cara Penggunaan Flashcard 50 Teknik Membuka Kelas Anti Ngantuk" 
-                                frameborder="0" 
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                                allowfullscreen>
-                            </iframe>
-                        </template>
+                        <!-- Target Video Iframe Container -->
+                        <div id="video-iframe-holder" class="absolute inset-0 w-full h-full hidden"></div>
 
                     </div>
                 </div>
+
+                <script>
+                function playShortsVideo() {
+                    var cover = document.getElementById('video-cover');
+                    var holder = document.getElementById('video-iframe-holder');
+                    if(cover && holder) {
+                        cover.style.display = 'none';
+                        holder.classList.remove('hidden');
+                        holder.innerHTML = '<iframe class="w-full h-full rounded-xl sm:rounded-2xl" src="https://www.youtube.com/embed/UOqIGm2l6Hg?autoplay=1&mute=0&rel=0&modestbranding=1&playsinline=1" title="Demo Cara Penggunaan Flashcard 50 Teknik Membuka Kelas Anti Ngantuk" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>';
+                    }
+                }
+                </script>
 
                 <!-- Video Helper CTA / Note -->
                 <div class="text-center mt-4 sm:mt-5 space-y-2">
