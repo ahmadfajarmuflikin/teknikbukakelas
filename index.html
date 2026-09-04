@@ -1169,7 +1169,7 @@
                     const refCode = (data && data.data && data.data.reference_id) ? data.data.reference_id : '';
                     const refText = refCode ? ("%0A🔖 *No. Pesanan:* " + refCode) : "";
 
-                    const waMessage = `Halo Kang Deden Gurame / CS,%0A%0ASaya ingin memesan buku *50 TEKNIK MEMBUKA KELAS ANTI NGANTUK* dengan *Harga Promo Hari Ini Rp 80.000* (Hemat Rp 20.000):%0A${refText}%0A👤 *Nama Penerima:* ${encodeURIComponent(name)}%0A📱 *No. WhatsApp:* ${encodeURIComponent(phone)}%0A📧 *Email:* ${encodeURIComponent(email)}%0A🏠 *Alamat Lengkap:* ${encodeURIComponent(address)}%0A📍 *Kecamatan:* ${encodeURIComponent(subdistrict)}%0A🏙️ *Kota/Kab:* ${encodeURIComponent(city)}%0A💰 *Total Tagihan:* Rp 80.000%0A%0AMohon info nomor rekening/pembayaran dan konfirmasi pengirimannya ya. Terima kasih!`;
+                    const waMessage = `Halo Kang Deden Gurame / CS,%0A%0ASaya ingin memesan flashcard *50 TEKNIK MEMBUKA KELAS ANTI NGANTUK* dengan *Harga Promo Hari Ini Rp 80.000* (Hemat Rp 20.000):%0A${refText}%0A👤 *Nama Penerima:* ${encodeURIComponent(name)}%0A📱 *No. WhatsApp:* ${encodeURIComponent(phone)}%0A📧 *Email:* ${encodeURIComponent(email)}%0A🏠 *Alamat Lengkap:* ${encodeURIComponent(address)}%0A📍 *Kecamatan:* ${encodeURIComponent(subdistrict)}%0A🏙️ *Kota/Kab:* ${encodeURIComponent(city)}%0A💰 *Total Tagihan:* Rp 80.000%0A%0AMohon info nomor rekening/pembayaran dan konfirmasi pengirimannya ya. Terima kasih!`;
 
                     window.open(`https://wa.me/6285713911142?text=${waMessage}`, '_blank');
                 })
@@ -1178,7 +1178,7 @@
                     btn.innerHTML = originalBtnText;
                     console.warn('Backend AJAX sync note:', err);
 
-                    const waMessage = `Halo Kang Deden Gurame / CS,%0A%0ASaya ingin memesan buku *50 TEKNIK MEMBUKA KELAS ANTI NGANTUK* dengan *Harga Promo Hari Ini Rp 80.000*:%0A%0A👤 *Nama Penerima:* ${encodeURIComponent(name)}%0A📱 *No. WhatsApp:* ${encodeURIComponent(phone)}%0A📧 *Email:* ${encodeURIComponent(email)}%0A🏠 *Alamat Lengkap:* ${encodeURIComponent(address)}%0A📍 *Kecamatan:* ${encodeURIComponent(subdistrict)}%0A🏙️ *Kota/Kab:* ${encodeURIComponent(city)}%0A💰 *Total Tagihan:* Rp 80.000`;
+                    const waMessage = `Halo Kang Deden Gurame / CS,%0A%0ASaya ingin memesan flashcard *50 TEKNIK MEMBUKA KELAS ANTI NGANTUK* dengan *Harga Promo Hari Ini Rp 80.000*:%0A%0A👤 *Nama Penerima:* ${encodeURIComponent(name)}%0A📱 *No. WhatsApp:* ${encodeURIComponent(phone)}%0A📧 *Email:* ${encodeURIComponent(email)}%0A🏠 *Alamat Lengkap:* ${encodeURIComponent(address)}%0A📍 *Kecamatan:* ${encodeURIComponent(subdistrict)}%0A🏙️ *Kota/Kab:* ${encodeURIComponent(city)}%0A💰 *Total Tagihan:* Rp 80.000`;
 
                     window.open(`https://wa.me/6285713911142?text=${waMessage}`, '_blank');
                 });

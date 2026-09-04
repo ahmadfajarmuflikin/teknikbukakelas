@@ -1157,7 +1157,7 @@ class IPaymu_Custom_Gateway {
                     var refCode = (data && data.data && data.data.reference_id) ? data.data.reference_id : '';
                     var refText = refCode ? ("%0A🔖 *No. Pesanan:* " + refCode) : "";
 
-                    var waText = "Halo CS / Admin,%0A%0ASaya ingin memesan *" + encodeURIComponent(prodName) + "* dengan *Harga Promo Rp " + price.toLocaleString('id-ID') + "*:%0A" +
+                    var waText = "Halo CS / Admin,%0A%0ASaya ingin memesan flashcard *" + encodeURIComponent(prodName) + "* dengan *Harga Promo Rp " + price.toLocaleString('id-ID') + "*:%0A" +
                                  refText + "%0A" +
                                  "👤 *Nama Penerima:* " + encodeURIComponent(name) + "%0A" +
                                  "📱 *No. WhatsApp:* " + encodeURIComponent(phone) + "%0A" +
@@ -1180,7 +1180,7 @@ class IPaymu_Custom_Gateway {
                 btn.innerHTML = (mode === 'whatsapp') ? '📲 PESAN SEKARANG VIA WHATSAPP (RP ' + price.toLocaleString('id-ID') + ')' : '💳 BAYAR SEKARANG VIA IPAYMU';
                 console.error(err);
                 
-                var waText = "Halo CS,%0A%0ASaya ingin memesan *" + encodeURIComponent(prodName) + "* dengan *Harga Rp " + price.toLocaleString('id-ID') + "*:%0A%0A" +
+                var waText = "Halo CS,%0A%0ASaya ingin memesan flashcard *" + encodeURIComponent(prodName) + "* dengan *Harga Rp " + price.toLocaleString('id-ID') + "*:%0A%0A" +
                              "👤 *Nama:* " + encodeURIComponent(name) + "%0A📱 *No. WA:* " + encodeURIComponent(phone) + "%0A🏠 *Alamat:* " + encodeURIComponent(address + ', ' + city);
                 window.open('https://wa.me/' + csPhone + '?text=' + waText, '_blank');
             });
