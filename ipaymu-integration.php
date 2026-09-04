@@ -1,8 +1,8 @@
 <?php
 /**
- * Plugin Name: iPaymu Gateway & WhatsApp Order - 50 Teknik Anti Ngantuk
- * Description: Integrasi Pemesanan WhatsApp & iPaymu Gateway API v2 untuk WordPress (Mendukung Produk Fisik & Digital, Promo Rp 80.000, Database Order, Manajemen Resi, Toggle WhatsApp / iPaymu).
- * Version: 3.2.0
+ * Plugin Name: iPaymu Gateway & WhatsApp Order - Multi-Product & Dynamic Page Pricing
+ * Description: Integrasi Pemesanan WhatsApp & iPaymu Gateway API v2 untuk WordPress (Setting Harga Dinamis per Halaman/Shortcode, Meta Box Page Editor, Produk Fisik & Digital, Database Order, Manajemen Resi).
+ * Version: 4.0.0
  * Author: Kang Deden Gurame
  */
 
@@ -21,11 +21,15 @@ class IPaymu_Custom_Gateway {
         // Buat atau perbarui tabel database
         register_activation_hook(__FILE__, [$this, 'create_orders_database_table']);
 
-        // Daftarkan Menu di Sidebar WordPress
+        // Daftarkan Menu di Sidebar WordPress & Meta Box Halaman
         add_action('admin_menu', [$this, 'register_admin_menus']);
         add_action('admin_init', [$this, 'create_orders_database_table']);
         add_action('admin_init', [$this, 'register_plugin_settings']);
         add_action('admin_init', [$this, 'handle_admin_actions']);
+
+        // Meta Box untuk setting harga per halaman di Page Editor
+        add_action('add_meta_boxes', [$this, 'register_page_meta_boxes']);
+        add_action('save_post', [$this, 'save_page_meta_boxes_data']);
 
         // Tambahkan link "Pengaturan" & "Data Pesanan" di daftar plugin
         add_filter('plugin_action_links_' . plugin_basename(__FILE__), [$this, 'add_plugin_action_links']);
@@ -38,7 +42,7 @@ class IPaymu_Custom_Gateway {
         add_action('wp_ajax_nopriv_ipaymu_submit_order', [$this, 'handle_order_submission']);
         add_action('wp_ajax_ipaymu_submit_order', [$this, 'handle_order_submission']);
 
-        // Daftarkan Webhook REST API route
+        // Daftarkan Webhook & REST API route
         add_action('rest_api_init', function () {
             register_rest_route('ipaymu/v1', '/notify', [
                 'methods'  => 'POST',
@@ -54,7 +58,7 @@ class IPaymu_Custom_Gateway {
     }
 
     /**
-     * Membuat & Menyesuaikan Tabel Database `wp_ipaymu_orders` (Dengan Auto Column Migration)
+     * Membuat & Menyesuaikan Tabel Database `wp_ipaymu_orders`
      */
     public function create_orders_database_table() {
         global $wpdb;
@@ -96,7 +100,7 @@ class IPaymu_Custom_Gateway {
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($sql);
 
-        // Verifikasi dan Auto-tambah Kolom jika tabel sudah pernah dibuat sebelumnya
+        // Auto column checker & migration
         $existing_columns = $wpdb->get_col("DESC " . $table_name, 0);
         if (!empty($existing_columns)) {
             $required_columns = [
@@ -132,12 +136,116 @@ class IPaymu_Custom_Gateway {
                 }
             }
         }
+    }
 
-        // Auto migrasi harga lama (99.000) ke harga promo baru (80.000)
-        $current_price = get_option('ipaymu_product_price');
-        if ($current_price == '99000' || empty($current_price)) {
-            update_option('ipaymu_product_price', '80000');
-            update_option('ipaymu_normal_price', '100000');
+    /**
+     * Daftarkan Meta Box Setting Produk & Harga di Editor Halaman (Page Editor)
+     */
+    public function register_page_meta_boxes() {
+        add_meta_box(
+            'ipaymu_page_product_meta',
+            '⚙️ Pengaturan Produk & Harga Halaman Ini',
+            [$this, 'render_page_meta_box'],
+            ['page', 'post'],
+            'normal',
+            'high'
+        );
+    }
+
+    /**
+     * Tampilan Meta Box Setting Harga & Produk per Halaman
+     */
+    public function render_page_meta_box($post) {
+        wp_nonce_field('ipaymu_page_meta_nonce_action', 'ipaymu_page_meta_nonce');
+
+        $custom_price   = get_post_meta($post->ID, '_ipaymu_custom_price', true);
+        $custom_normal  = get_post_meta($post->ID, '_ipaymu_custom_normal_price', true);
+        $custom_name    = get_post_meta($post->ID, '_ipaymu_custom_product_name', true);
+        $custom_type    = get_post_meta($post->ID, '_ipaymu_custom_product_type', true);
+        $custom_cs      = get_post_meta($post->ID, '_ipaymu_custom_cs_wa', true);
+
+        $global_price   = get_option('ipaymu_product_price', '80000');
+        $global_normal  = get_option('ipaymu_normal_price', '100000');
+        $global_name    = get_option('ipaymu_product_name', '50 TEKNIK MEMBUKA KELAS ANTI NGANTUK');
+        $global_type    = get_option('ipaymu_product_type', 'physical');
+        ?>
+        <div style="font-family: -apple-system, BlinkMacSystemFont, sans-serif; padding: 6px 0;">
+            <p style="margin: 0 0 12px; color: #64748b; font-size: 13px;">
+                💡 <em>Kosongkan kolom di bawah jika ingin menggunakan pengaturan harga/produk global secara default.</em>
+            </p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 12px;">
+                <div>
+                    <label style="display:block; font-weight: 700; font-size: 12px; margin-bottom: 4px; color: #1e293b;">
+                        Harga Promo Halaman Ini (Rp)
+                    </label>
+                    <input type="number" name="ipaymu_custom_price" value="<?php echo esc_attr($custom_price); ?>" placeholder="Default: <?php echo esc_attr($global_price); ?>" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                </div>
+                <div>
+                    <label style="display:block; font-weight: 700; font-size: 12px; margin-bottom: 4px; color: #1e293b;">
+                        Harga Normal / Coret (Rp)
+                    </label>
+                    <input type="number" name="ipaymu_custom_normal_price" value="<?php echo esc_attr($custom_normal); ?>" placeholder="Default: <?php echo esc_attr($global_normal); ?>" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 12px;">
+                <label style="display:block; font-weight: 700; font-size: 12px; margin-bottom: 4px; color: #1e293b;">
+                    Nama Produk Khusus Halaman Ini
+                </label>
+                <input type="text" name="ipaymu_custom_product_name" value="<?php echo esc_attr($custom_name); ?>" placeholder="Default: <?php echo esc_attr($global_name); ?>" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid #cbd5e1;">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div>
+                    <label style="display:block; font-weight: 700; font-size: 12px; margin-bottom: 4px; color: #1e293b;">
+                        Tipe Produk
+                    </label>
+                    <select name="ipaymu_custom_product_type" style="width: 100%; padding: 7px 10px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                        <option value="" <?php selected($custom_type, ''); ?>>-- Ikuti Pengaturan Global (<?php echo esc_html($global_type); ?>) --</option>
+                        <option value="physical" <?php selected($custom_type, 'physical'); ?>>📦 Produk Fisik (Buku Fisik & Butuh Alamat)</option>
+                        <option value="digital" <?php selected($custom_type, 'digital'); ?>>⚡ Produk Digital (Tanpa Alamat)</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display:block; font-weight: 700; font-size: 12px; margin-bottom: 4px; color: #1e293b;">
+                        Nomor CS WhatsApp Khusus (Opsional)
+                    </label>
+                    <input type="text" name="ipaymu_custom_cs_wa" value="<?php echo esc_attr($custom_cs); ?>" placeholder="Default: 085713911142" style="width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                </div>
+            </div>
+        </div>
+        <?php
+    }
+
+    /**
+     * Simpan Data Meta Box saat Page/Post Disimpan
+     */
+    public function save_page_meta_boxes_data($post_id) {
+        if (!isset($_POST['ipaymu_page_meta_nonce']) || !wp_verify_nonce($_POST['ipaymu_page_meta_nonce'], 'ipaymu_page_meta_nonce_action')) {
+            return;
+        }
+
+        if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+            return;
+        }
+
+        if (!current_user_can('edit_post', $post_id)) {
+            return;
+        }
+
+        $fields = [
+            'ipaymu_custom_price'        => '_ipaymu_custom_price',
+            'ipaymu_custom_normal_price' => '_ipaymu_custom_normal_price',
+            'ipaymu_custom_product_name' => '_ipaymu_custom_product_name',
+            'ipaymu_custom_product_type' => '_ipaymu_custom_product_type',
+            'ipaymu_custom_cs_wa'        => '_ipaymu_custom_cs_wa'
+        ];
+
+        foreach ($fields as $post_key => $meta_key) {
+            if (isset($_POST[$post_key])) {
+                update_post_meta($post_id, $meta_key, sanitize_text_field($_POST[$post_key]));
+            }
         }
     }
 
@@ -413,16 +521,25 @@ class IPaymu_Custom_Gateway {
         $cancel_url   = get_option('ipaymu_cancel_url', home_url('/'));
         $notify_url   = rest_url('ipaymu/v1/notify');
         ?>
-        <div class="wrap" style="max-width: 920px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+        <div class="wrap" style="max-width: 940px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
             
             <div style="background: #fff; padding: 25px 30px; border-radius: 12px; border: 1px solid #ccd0d4; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-top: 20px;">
                 
                 <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #f0f0f1; padding-bottom: 15px; margin-bottom: 20px;">
                     <div>
-                        <h1 style="margin: 0; color: #1d2327; font-size: 24px; font-weight: 700;">⚙️ Pengaturan Pemesanan & Gateway</h1>
-                        <p style="margin: 5px 0 0; color: #646970; font-size: 13px;">Pengaturan jalur pemesanan (WhatsApp Langsung / iPaymu Gateway API v2).</p>
+                        <h1 style="margin: 0; color: #1d2327; font-size: 24px; font-weight: 700;">⚙️ Pengaturan Pemesanan & Gateway Global</h1>
+                        <p style="margin: 5px 0 0; color: #646970; font-size: 13px;">Pengaturan global untuk jalur WhatsApp & Gateway iPaymu.</p>
                     </div>
-                    <span style="background: #008a20; color: #fff; font-weight: bold; font-size: 12px; padding: 5px 12px; border-radius: 20px;">v3.2.0 Ready</span>
+                    <span style="background: #008a20; color: #fff; font-weight: bold; font-size: 12px; padding: 5px 12px; border-radius: 20px;">v4.0.0 Ready</span>
+                </div>
+
+                <div style="background: #e7f3fe; border-left: 4px solid #0052cc; padding: 12px 18px; border-radius: 6px; margin-bottom: 20px; font-size: 13px; color: #0c4a6e;">
+                    <strong>💡 Tips Pengaturan Harga Per Halaman:</strong><br>
+                    Anda bisa mengatur harga berbeda untuk setiap halaman/produk dengan 2 cara:
+                    <ol style="margin: 6px 0 0; padding-left: 18px;">
+                        <li><strong>Shortcode Parameter:</strong> <code>[ipaymu_checkout_box price="80000" normal_price="100000" product="Nama Produk"]</code></li>
+                        <li><strong>Editor Halaman (Meta Box):</strong> Buka halaman yang Anda edit di WordPress, di bawah editor terdapat kotak <em>"Pengaturan Produk & Harga Halaman Ini"</em>.</li>
+                    </ol>
                 </div>
 
                 <form method="post" action="options.php">
@@ -447,44 +564,39 @@ class IPaymu_Custom_Gateway {
                                         <span>💳 iPaymu Gateway (Pakai jika verifikasi akun selesai)</span>
                                     </label>
                                 </fieldset>
-                                <p class="description" style="margin-top: 6px; color: #15803d;">
-                                    Saat mode <strong>WhatsApp Langsung</strong> aktif, pembeli yang mengisi form akan diarahkan langsung chat ke WhatsApp CS dengan format pemesanan otomatis & data order tetap tersimpan di database.
-                                </p>
                             </td>
                         </tr>
 
-                        <!-- Nomor WhatsApp CS -->
+                        <!-- Nomor WhatsApp CS Global -->
                         <tr>
-                            <th scope="row" style="font-weight: 600; font-size: 14px;">Nomor WhatsApp CS</th>
+                            <th scope="row" style="font-weight: 600; font-size: 14px;">Nomor WhatsApp CS (Global)</th>
                             <td>
                                 <input type="text" name="ipaymu_cs_whatsapp" value="<?php echo esc_attr($cs_whatsapp); ?>" class="regular-text" style="width: 240px; border-radius: 6px; padding: 8px 12px;" required>
-                                <p class="description">Contoh: 085713911142 atau 6285713911142.</p>
                             </td>
                         </tr>
 
-                        <!-- Harga Normal & Promo -->
+                        <!-- Harga Normal & Promo Global -->
                         <tr>
-                            <th scope="row" style="font-weight: 600; font-size: 14px;">Harga Normal (Rp)</th>
+                            <th scope="row" style="font-weight: 600; font-size: 14px;">Harga Normal Global (Rp)</th>
                             <td>
                                 <input type="number" name="ipaymu_normal_price" value="<?php echo esc_attr($normal_price); ?>" class="regular-text" style="width: 200px; border-radius: 6px; padding: 8px 12px;" required>
                             </td>
                         </tr>
 
                         <tr>
-                            <th scope="row" style="font-weight: 600; font-size: 14px;">Harga Promo Pesan Hari Ini (Rp)</th>
+                            <th scope="row" style="font-weight: 600; font-size: 14px;">Harga Promo Global (Rp)</th>
                             <td>
                                 <input type="number" name="ipaymu_product_price" value="<?php echo esc_attr($price); ?>" class="regular-text" style="width: 200px; border-radius: 6px; padding: 8px 12px;" required>
-                                <p class="description">Nominal promo yang ditagihkan ke pembeli (Contoh: 80000).</p>
                             </td>
                         </tr>
 
-                        <!-- Tipe Produk Utama -->
+                        <!-- Tipe Produk Global -->
                         <tr>
-                            <th scope="row" style="font-weight: 600; font-size: 14px;">Tipe Produk</th>
+                            <th scope="row" style="font-weight: 600; font-size: 14px;">Tipe Produk Global</th>
                             <td>
                                 <label style="margin-right: 25px; font-weight: 600; cursor: pointer;">
                                     <input type="radio" name="ipaymu_product_type" value="physical" <?php checked($product_type, 'physical'); ?>>
-                                    <span>📦 Produk Fisik (Buku Fisik & Butuh Alamat Pengiriman)</span>
+                                    <span>📦 Produk Fisik (Buku Fisik & Butuh Alamat)</span>
                                 </label>
                                 <label style="font-weight: 600; cursor: pointer;">
                                     <input type="radio" name="ipaymu_product_type" value="digital" <?php checked($product_type, 'digital'); ?>>
@@ -493,22 +605,21 @@ class IPaymu_Custom_Gateway {
                             </td>
                         </tr>
 
-                        <!-- Nama Produk -->
+                        <!-- Nama Produk Global -->
                         <tr>
-                            <th scope="row" style="font-weight: 600; font-size: 14px;">Nama Produk</th>
+                            <th scope="row" style="font-weight: 600; font-size: 14px;">Nama Produk Global</th>
                             <td>
                                 <input type="text" name="ipaymu_product_name" value="<?php echo esc_attr($product_name); ?>" class="regular-text" style="width: 100%; max-width: 450px; border-radius: 6px; padding: 8px 12px;" required>
                             </td>
                         </tr>
 
-                        <!-- Pengaturan iPaymu Gateway (Opsional jika sudah verifikasi) -->
+                        <!-- Pengaturan iPaymu Gateway -->
                         <tr>
                             <th colspan="2" style="padding-top: 25px; padding-bottom: 5px; border-bottom: 1px solid #e2e8f0;">
-                                <h3 style="margin: 0; color: #0284c7; font-size: 16px;">💳 Pengaturan API iPaymu (Digunakan saat Mode iPaymu Aktif)</h3>
+                                <h3 style="margin: 0; color: #0284c7; font-size: 16px;">💳 Pengaturan API iPaymu (Saat Mode iPaymu Aktif)</h3>
                             </th>
                         </tr>
 
-                        <!-- Mode Lingkungan iPaymu -->
                         <tr>
                             <th scope="row" style="font-weight: 600; font-size: 14px;">Mode iPaymu</th>
                             <td>
@@ -523,7 +634,6 @@ class IPaymu_Custom_Gateway {
                             </td>
                         </tr>
 
-                        <!-- Virtual Account -->
                         <tr>
                             <th scope="row" style="font-weight: 600; font-size: 14px;">Virtual Account (VA)</th>
                             <td>
@@ -531,7 +641,6 @@ class IPaymu_Custom_Gateway {
                             </td>
                         </tr>
 
-                        <!-- API Key -->
                         <tr>
                             <th scope="row" style="font-weight: 600; font-size: 14px;">API Key</th>
                             <td>
@@ -539,7 +648,6 @@ class IPaymu_Custom_Gateway {
                             </td>
                         </tr>
 
-                        <!-- Return URL -->
                         <tr>
                             <th scope="row" style="font-weight: 600; font-size: 14px;">Return URL</th>
                             <td>
@@ -550,7 +658,7 @@ class IPaymu_Custom_Gateway {
                     </table>
 
                     <div style="margin-top: 25px; padding-top: 15px; border-top: 1px solid #f0f0f1;">
-                        <?php submit_button('💾 Simpan Pengaturan', 'primary', 'submit', false, ['style' => 'background: #008a20; border-color: #008a20; padding: 8px 24px; font-weight: bold; border-radius: 6px; font-size: 14px; cursor: pointer;']); ?>
+                        <?php submit_button('💾 Simpan Pengaturan Global', 'primary', 'submit', false, ['style' => 'background: #008a20; border-color: #008a20; padding: 8px 24px; font-weight: bold; border-radius: 6px; font-size: 14px; cursor: pointer;']); ?>
                     </div>
                 </form>
 
@@ -560,25 +668,50 @@ class IPaymu_Custom_Gateway {
     }
 
     /**
-     * Shortcode [ipaymu_checkout_box]
-     * Mendukung Jalur Pemesanan WhatsApp & iPaymu Otomatis
+     * Shortcode [ipaymu_checkout_box price="..." normal_price="..." product="..." type="physical|digital" cs="..."]
+     * Mendukung setting harga dinamis per halaman & shortcode
      */
     public function render_checkout_box_shortcode($atts) {
-        $checkout_mode = get_option('ipaymu_checkout_mode', 'whatsapp'); // whatsapp | ipaymu
-        $cs_phone      = get_option('ipaymu_cs_whatsapp', '085713911142');
+        global $post;
+        $post_id = is_object($post) ? $post->ID : 0;
+
+        // Ambil nilai khusus per halaman (post meta) jika ada
+        $meta_price  = $post_id ? get_post_meta($post_id, '_ipaymu_custom_price', true) : '';
+        $meta_normal = $post_id ? get_post_meta($post_id, '_ipaymu_custom_normal_price', true) : '';
+        $meta_name   = $post_id ? get_post_meta($post_id, '_ipaymu_custom_product_name', true) : '';
+        $meta_type   = $post_id ? get_post_meta($post_id, '_ipaymu_custom_product_type', true) : '';
+        $meta_cs     = $post_id ? get_post_meta($post_id, '_ipaymu_custom_cs_wa', true) : '';
+
+        // Default global
+        $global_price  = (int) get_option('ipaymu_product_price', 80000);
+        $global_normal = (int) get_option('ipaymu_normal_price', 100000);
+        $global_name   = get_option('ipaymu_product_name', '50 TEKNIK MEMBUKA KELAS ANTI NGANTUK');
+        $global_type   = get_option('ipaymu_product_type', 'physical');
+        $global_cs     = get_option('ipaymu_cs_whatsapp', '085713911142');
+
+        // Parse shortcode attributes (Shortcode > Page Meta > Global Option)
+        $args = shortcode_atts([
+            'price'        => !empty($meta_price) ? $meta_price : $global_price,
+            'normal_price' => !empty($meta_normal) ? $meta_normal : $global_normal,
+            'product'      => !empty($meta_name) ? $meta_name : $global_name,
+            'type'         => !empty($meta_type) ? $meta_type : $global_type,
+            'cs'           => !empty($meta_cs) ? $meta_cs : $global_cs
+        ], $atts);
+
+        $price         = (int) $args['price'];
+        $normal_price  = (int) $args['normal_price'];
+        $product_name  = sanitize_text_field($args['product']);
+        $type          = in_array(strtolower($args['type']), ['digital', 'online']) ? 'digital' : 'physical';
+        
+        $cs_phone      = !empty($args['cs']) ? $args['cs'] : $global_cs;
         $clean_cs      = preg_replace('/[^0-9]/', '', $cs_phone);
         if (substr($clean_cs, 0, 1) === '0') {
             $clean_cs = '62' . substr($clean_cs, 1);
         }
 
-        $default_type  = get_option('ipaymu_product_type', 'physical');
-        $args          = shortcode_atts(['type' => $default_type], $atts);
-        $type          = in_array(strtolower($args['type']), ['digital', 'online']) ? 'digital' : 'physical';
-
-        $price         = (int) get_option('ipaymu_product_price', 80000);
-        $normal_price  = (int) get_option('ipaymu_normal_price', 100000);
-        $product_name  = get_option('ipaymu_product_name', '50 TEKNIK MEMBUKA KELAS ANTI NGANTUK');
+        $checkout_mode = get_option('ipaymu_checkout_mode', 'whatsapp'); // whatsapp | ipaymu
         $ajax_url      = admin_url('admin-ajax.php');
+        $form_id       = 'ipaymu_form_' . rand(1000, 9999);
 
         ob_start();
         ?>
@@ -589,18 +722,23 @@ class IPaymu_Custom_Gateway {
                 <!-- Card Header -->
                 <div style="text-align: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 16px; margin-bottom: 18px;">
                     <span style="display: inline-block; background: #fffbeb; color: #d97706; border: 1px solid #fef3c7; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; padding: 3px 12px; border-radius: 20px; margin-bottom: 6px;">
-                        <?php echo ($type === 'physical') ? '📦 FORMULIR PEMESANAN BUKU FISIK' : '⚡ FORMULIR PEMESANAN INSTAN'; ?>
+                        <?php echo ($type === 'physical') ? '📦 FORMULIR PEMESANAN PRODUK FISIK' : '⚡ FORMULIR PEMESANAN INSTAN'; ?>
                     </span>
                     
                     <div style="display: flex; align-items: baseline; justify-content: center; gap: 8px; margin-top: 4px;">
-                        <span style="font-size: 13px; color: #94a3b8; text-decoration: line-through;">Rp <?php echo number_format($normal_price, 0, ',', '.'); ?></span>
+                        <?php if ($normal_price > $price) : ?>
+                            <span style="font-size: 13px; color: #94a3b8; text-decoration: line-through;">Rp <?php echo number_format($normal_price, 0, ',', '.'); ?></span>
+                        <?php endif; ?>
                         <span style="font-size: 28px; font-weight: 900; color: #0f172a; letter-spacing: -0.5px;">Rp <?php echo number_format($price, 0, ',', '.'); ?></span>
                         <span style="font-size: 11px; font-weight: 600; color: #64748b;"><?php echo ($type === 'physical') ? '/ buku fisik' : '/ akses instan'; ?></span>
                     </div>
-                    <p style="font-size: 11px; color: #16a34a; font-weight: 700; margin: 4px 0 0;">🔥 Hemat Rp <?php echo number_format($normal_price - $price, 0, ',', '.'); ?> khusus pemesanan hari ini</p>
+                    
+                    <?php if ($normal_price > $price) : ?>
+                        <p style="font-size: 11px; color: #16a34a; font-weight: 700; margin: 4px 0 0;">🔥 Hemat Rp <?php echo number_format($normal_price - $price, 0, ',', '.'); ?> khusus pemesanan hari ini</p>
+                    <?php endif; ?>
                 </div>
 
-                <form id="ipaymu-order-form-<?php echo esc_attr($type); ?>" onsubmit="submitUnifiedOrder(event, '<?php echo esc_attr($type); ?>', '<?php echo esc_attr($checkout_mode); ?>', '<?php echo esc_attr($clean_cs); ?>', <?php echo $price; ?>)" style="margin: 0;">
+                <form id="<?php echo esc_attr($form_id); ?>" onsubmit="submitDynamicOrder(event, '<?php echo esc_attr($form_id); ?>', '<?php echo esc_attr($type); ?>', '<?php echo esc_attr($checkout_mode); ?>', '<?php echo esc_attr($clean_cs); ?>', <?php echo $price; ?>, '<?php echo esc_js($product_name); ?>')" style="margin: 0;">
                     
                     <!-- SECTION 1: DATA PEMESAN -->
                     <div style="margin-bottom: 16px;">
@@ -611,17 +749,17 @@ class IPaymu_Custom_Gateway {
 
                         <div style="margin-bottom: 10px; text-align: left;">
                             <label style="display: block; font-size: 11px; font-weight: 700; color: #334155; margin-bottom: 4px;">Nama Lengkap Penerima <span style="color:#ef4444;">*</span></label>
-                            <input type="text" id="cust_name_<?php echo esc_attr($type); ?>" placeholder="Contoh: Budi Santoso, S.Pd." required style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 13px; background: #f8fafc; box-sizing: border-box; outline: none;">
+                            <input type="text" name="cust_name" placeholder="Contoh: Budi Santoso, S.Pd." required style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 13px; background: #f8fafc; box-sizing: border-box; outline: none;">
                         </div>
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left;">
                             <div>
                                 <label style="display: block; font-size: 11px; font-weight: 700; color: #334155; margin-bottom: 4px;">No. WhatsApp <span style="color:#ef4444;">*</span></label>
-                                <input type="tel" id="cust_phone_<?php echo esc_attr($type); ?>" placeholder="08xxxxxxxxxx" required style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 13px; background: #f8fafc; box-sizing: border-box; outline: none;">
+                                <input type="tel" name="cust_phone" placeholder="08xxxxxxxxxx" required style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 13px; background: #f8fafc; box-sizing: border-box; outline: none;">
                             </div>
                             <div>
                                 <label style="display: block; font-size: 11px; font-weight: 700; color: #334155; margin-bottom: 4px;">Email Aktif</label>
-                                <input type="email" id="cust_email_<?php echo esc_attr($type); ?>" placeholder="email@gmail.com" style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 13px; background: #f8fafc; box-sizing: border-box; outline: none;">
+                                <input type="email" name="cust_email" placeholder="email@gmail.com" style="width: 100%; padding: 10px 14px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 13px; background: #f8fafc; box-sizing: border-box; outline: none;">
                             </div>
                         </div>
                     </div>
@@ -636,35 +774,35 @@ class IPaymu_Custom_Gateway {
 
                         <div style="margin-bottom: 10px; text-align: left;">
                             <label style="display: block; font-size: 11px; font-weight: 700; color: #334155; margin-bottom: 4px;">Alamat Rumah Lengkap (Jalan, No, RT/RW, Kelurahan) <span style="color:#ef4444;">*</span></label>
-                            <textarea id="ship_address_<?php echo esc_attr($type); ?>" rows="2" placeholder="Contoh: Jl. Merdeka No. 45, RT 02/RW 04, Kel. Sukamaju" required style="width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 13px; background: #f8fafc; box-sizing: border-box; outline: none; resize: vertical;"></textarea>
+                            <textarea name="ship_address" rows="2" placeholder="Contoh: Jl. Merdeka No. 45, RT 02/RW 04, Kel. Sukamaju" required style="width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 13px; background: #f8fafc; box-sizing: border-box; outline: none; resize: vertical;"></textarea>
                         </div>
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; text-align: left;">
                             <div>
                                 <label style="display: block; font-size: 11px; font-weight: 700; color: #334155; margin-bottom: 4px;">Kecamatan <span style="color:#ef4444;">*</span></label>
-                                <input type="text" id="ship_subdistrict_<?php echo esc_attr($type); ?>" placeholder="Contoh: Cilodong" required style="width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 13px; background: #f8fafc; box-sizing: border-box; outline: none;">
+                                <input type="text" name="ship_subdistrict" placeholder="Contoh: Cilodong" required style="width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 13px; background: #f8fafc; box-sizing: border-box; outline: none;">
                             </div>
                             <div>
                                 <label style="display: block; font-size: 11px; font-weight: 700; color: #334155; margin-bottom: 4px;">Kota / Kabupaten <span style="color:#ef4444;">*</span></label>
-                                <input type="text" id="ship_city_<?php echo esc_attr($type); ?>" placeholder="Contoh: Depok, Jabar" required style="width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 13px; background: #f8fafc; box-sizing: border-box; outline: none;">
+                                <input type="text" name="ship_city" placeholder="Contoh: Depok, Jabar" required style="width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 13px; background: #f8fafc; box-sizing: border-box; outline: none;">
                             </div>
                         </div>
 
                         <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 10px; text-align: left;">
                             <div>
                                 <label style="display: block; font-size: 11px; font-weight: 700; color: #334155; margin-bottom: 4px;">Kode Pos</label>
-                                <input type="text" id="ship_postal_<?php echo esc_attr($type); ?>" placeholder="16413" style="width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 13px; background: #f8fafc; box-sizing: border-box; outline: none;">
+                                <input type="text" name="ship_postal" placeholder="16413" style="width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 13px; background: #f8fafc; box-sizing: border-box; outline: none;">
                             </div>
                             <div>
                                 <label style="display: block; font-size: 11px; font-weight: 700; color: #334155; margin-bottom: 4px;">Catatan Kurir (Opsional)</label>
-                                <input type="text" id="ship_notes_<?php echo esc_attr($type); ?>" placeholder="Pagar hitam / titip satpam" style="width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 13px; background: #f8fafc; box-sizing: border-box; outline: none;">
+                                <input type="text" name="ship_notes" placeholder="Pagar hitam / titip satpam" style="width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 13px; background: #f8fafc; box-sizing: border-box; outline: none;">
                             </div>
                         </div>
                     </div>
                     <?php endif; ?>
 
                     <!-- Submit Button -->
-                    <button type="submit" id="btn_submit_<?php echo esc_attr($type); ?>" style="width: 100%; background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; font-weight: 800; font-size: 14px; padding: 14px; border-radius: 14px; border: none; cursor: pointer; box-shadow: 0 10px 22px -5px rgba(16,185,129,0.4); transition: transform 0.2s, opacity 0.2s;">
+                    <button type="submit" class="btn-submit-order" style="width: 100%; background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; font-weight: 800; font-size: 14px; padding: 14px; border-radius: 14px; border: none; cursor: pointer; box-shadow: 0 10px 22px -5px rgba(16,185,129,0.4); transition: transform 0.2s, opacity 0.2s;">
                         <?php if ($checkout_mode === 'whatsapp') : ?>
                             📲 PESAN SEKARANG VIA WHATSAPP (RP <?php echo number_format($price, 0, ',', '.'); ?>)
                         <?php else : ?>
@@ -673,16 +811,16 @@ class IPaymu_Custom_Gateway {
                     </button>
                     
                     <div style="display: flex; align-items: center; justify-content: center; gap: 5px; margin-top: 10px; font-size: 10px; color: #94a3b8;">
-                        <span>🔒 Pesanan Resmi Kang Deden Gurame</span>
+                        <span>🔒 Pesanan Resmi <?php echo esc_html($product_name); ?></span>
                         <span>•</span>
-                        <span>CS Aktif 24 Jam</span>
+                        <span>CS Aktif</span>
                     </div>
                 </form>
 
                 <!-- CS Support -->
                 <div style="text-align: center; margin-top: 14px; padding-top: 12px; border-top: 1px solid #f1f5f9;">
                     <p style="font-size: 11px; color: #64748b; margin: 0 0 4px;">Butuh bantuan pesanan atau tanya jawab?</p>
-                    <a href="https://wa.me/<?php echo esc_attr($clean_cs); ?>?text=Halo%20CS%20Kang%20Deden%20Gurame,%20saya%20butuh%20bantuan%20pemesanan%2050%20Teknik%20Membuka%20Kelas%20Anti%20Ngantuk." 
+                    <a href="https://wa.me/<?php echo esc_attr($clean_cs); ?>?text=Halo%20CS,%20saya%20butuh%20bantuan%20pemesanan%20<?php echo rawurlencode($product_name); ?>." 
                        target="_blank" 
                        style="display: inline-block; font-size: 11px; font-weight: 700; color: #059669; text-decoration: none; background: #ecfdf5; padding: 5px 12px; border-radius: 8px; border: 1px solid #a7f3d0;">
                         📲 Hubungi CS WhatsApp: <?php echo esc_html($cs_phone); ?>
@@ -693,18 +831,20 @@ class IPaymu_Custom_Gateway {
         </div>
 
         <script>
-        function submitUnifiedOrder(e, prodType, mode, csPhone, price) {
+        function submitDynamicOrder(e, formId, prodType, mode, csPhone, price, prodName) {
             e.preventDefault();
-            var btn = document.getElementById('btn_submit_' + prodType);
-            var name = document.getElementById('cust_name_' + prodType).value.trim();
-            var phone = document.getElementById('cust_phone_' + prodType).value.trim();
-            var email = document.getElementById('cust_email_' + prodType).value.trim() || '-';
+            var form = document.getElementById(formId);
+            var btn = form.querySelector('.btn-submit-order');
+            
+            var name = form.querySelector('[name="cust_name"]').value.trim();
+            var phone = form.querySelector('[name="cust_phone"]').value.trim();
+            var email = form.querySelector('[name="cust_email"]') ? form.querySelector('[name="cust_email"]').value.trim() : '-';
 
-            var address = (prodType === 'physical') ? document.getElementById('ship_address_' + prodType).value.trim() : '';
-            var subdistrict = (prodType === 'physical') ? document.getElementById('ship_subdistrict_' + prodType).value.trim() : '';
-            var city = (prodType === 'physical') ? document.getElementById('ship_city_' + prodType).value.trim() : '';
-            var postal = (prodType === 'physical' && document.getElementById('ship_postal_' + prodType)) ? document.getElementById('ship_postal_' + prodType).value.trim() : '';
-            var notes = (prodType === 'physical' && document.getElementById('ship_notes_' + prodType)) ? document.getElementById('ship_notes_' + prodType).value.trim() : '';
+            var address = form.querySelector('[name="ship_address"]') ? form.querySelector('[name="ship_address"]').value.trim() : '';
+            var subdistrict = form.querySelector('[name="ship_subdistrict"]') ? form.querySelector('[name="ship_subdistrict"]').value.trim() : '';
+            var city = form.querySelector('[name="ship_city"]') ? form.querySelector('[name="ship_city"]').value.trim() : '';
+            var postal = form.querySelector('[name="ship_postal"]') ? form.querySelector('[name="ship_postal"]').value.trim() : '';
+            var notes = form.querySelector('[name="ship_notes"]') ? form.querySelector('[name="ship_notes"]').value.trim() : '';
 
             if(!name || !phone) {
                 alert('Mohon lengkapi Nama Lengkap dan No. WhatsApp.');
@@ -722,6 +862,7 @@ class IPaymu_Custom_Gateway {
             var formData = new URLSearchParams();
             formData.append('action', 'ipaymu_submit_order');
             formData.append('product_type', prodType);
+            formData.append('product_name', prodName);
             formData.append('amount', price);
             formData.append('price', price);
             formData.append('name', name);
@@ -748,7 +889,7 @@ class IPaymu_Custom_Gateway {
                     var refCode = (data && data.data && data.data.reference_id) ? data.data.reference_id : '';
                     var refText = refCode ? ("%0A🔖 *No. Pesanan:* " + refCode) : "";
 
-                    var waText = "Halo Kang Deden Gurame / CS,%0A%0ASaya ingin memesan buku *50 TEKNIK MEMBUKA KELAS ANTI NGANTUK* dengan *Harga Promo Hari Ini Rp " + price.toLocaleString('id-ID') + "* (Hemat Rp 20.000):%0A" +
+                    var waText = "Halo CS / Admin,%0A%0ASaya ingin memesan *" + encodeURIComponent(prodName) + "* dengan *Harga Promo Rp " + price.toLocaleString('id-ID') + "*:%0A" +
                                  refText + "%0A" +
                                  "👤 *Nama Penerima:* " + encodeURIComponent(name) + "%0A" +
                                  "📱 *No. WhatsApp:* " + encodeURIComponent(phone) + "%0A" +
@@ -771,8 +912,7 @@ class IPaymu_Custom_Gateway {
                 btn.innerHTML = (mode === 'whatsapp') ? '📲 PESAN SEKARANG VIA WHATSAPP (RP ' + price.toLocaleString('id-ID') + ')' : '💳 BAYAR SEKARANG VIA IPAYMU';
                 console.error(err);
                 
-                // Fallback direct open WA even if network glitch
-                var waText = "Halo Kang Deden Gurame / CS,%0A%0ASaya ingin memesan buku *50 TEKNIK MEMBUKA KELAS ANTI NGANTUK* dengan *Harga Promo Hari Ini Rp " + price.toLocaleString('id-ID') + "*:%0A%0A" +
+                var waText = "Halo CS,%0A%0ASaya ingin memesan *" + encodeURIComponent(prodName) + "* dengan *Harga Rp " + price.toLocaleString('id-ID') + "*:%0A%0A" +
                              "👤 *Nama:* " + encodeURIComponent(name) + "%0A📱 *No. WA:* " + encodeURIComponent(phone) + "%0A🏠 *Alamat:* " + encodeURIComponent(address + ', ' + city);
                 window.open('https://wa.me/' + csPhone + '?text=' + waText, '_blank');
             });
@@ -804,7 +944,7 @@ class IPaymu_Custom_Gateway {
     }
 
     /**
-     * Memproses submit order & MENYIMPAN KE DATABASE
+     * Memproses submit order & MENYIMPAN KE DATABASE SECARA DINAMIS
      */
     public function handle_order_submission() {
         global $wpdb;
@@ -812,6 +952,8 @@ class IPaymu_Custom_Gateway {
 
         $checkout_mode = isset($_POST['checkout_mode']) ? sanitize_text_field($_POST['checkout_mode']) : get_option('ipaymu_checkout_mode', 'whatsapp');
         $product_type  = isset($_POST['product_type']) ? sanitize_text_field($_POST['product_type']) : get_option('ipaymu_product_type', 'physical');
+        $product_name  = isset($_POST['product_name']) && !empty($_POST['product_name']) ? sanitize_text_field($_POST['product_name']) : get_option('ipaymu_product_name', '50 TEKNIK MEMBUKA KELAS ANTI NGANTUK');
+
         $name          = isset($_POST['name']) ? sanitize_text_field($_POST['name']) : '';
         $phone         = isset($_POST['phone']) ? sanitize_text_field($_POST['phone']) : '';
         $email         = isset($_POST['email']) ? sanitize_email($_POST['email']) : '';
@@ -825,16 +967,14 @@ class IPaymu_Custom_Gateway {
             wp_send_json_error(['message' => 'Mohon lengkapi Nama dan WhatsApp Anda.']);
         }
 
-        $price = isset($_POST['amount']) ? intval($_POST['amount']) : (int) get_option('ipaymu_product_price', 80000);
-        if ($price == 99000 || $price <= 0) {
-            $price = 80000;
-            update_option('ipaymu_product_price', '80000');
-            update_option('ipaymu_normal_price', '100000');
+        // Ambil nominal dinamis dari POST (jika ada setting khusus per halaman) atau fallback ke option
+        $price = isset($_POST['amount']) ? intval($_POST['amount']) : (isset($_POST['price']) ? intval($_POST['price']) : (int) get_option('ipaymu_product_price', 80000));
+        if ($price <= 0) {
+            $price = (int) get_option('ipaymu_product_price', 80000);
         }
-        $product_name = get_option('ipaymu_product_name', '50 TEKNIK MEMBUKA KELAS ANTI NGANTUK');
+
         $reference_id = 'ORDER-' . time() . rand(100, 999);
 
-        // Pastikan tabel dan kolom siap
         $this->create_orders_database_table();
 
         // Jika mode WhatsApp: simpan order ke database lalu return success
@@ -872,7 +1012,8 @@ class IPaymu_Custom_Gateway {
             wp_send_json_success([
                 'mode'         => 'whatsapp',
                 'order_id'     => $wpdb->insert_id,
-                'reference_id' => $reference_id
+                'reference_id' => $reference_id,
+                'amount'       => $price
             ]);
             wp_die();
         }
@@ -900,7 +1041,7 @@ class IPaymu_Custom_Gateway {
             'product'     => [$product_name],
             'qty'         => [1],
             'price'       => [$price],
-            'description' => 'Pemesanan Buku Fisik ' . $product_name
+            'description' => 'Pemesanan ' . $product_name
         ];
 
         $jsonBody  = json_encode($body, JSON_UNESCAPED_SLASHES);
