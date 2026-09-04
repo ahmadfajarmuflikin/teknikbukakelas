@@ -443,10 +443,10 @@
                              @click="isPlaying = true" 
                              class="absolute inset-0 w-full h-full cursor-pointer group select-none z-10">
                             
-                            <!-- High Resolution HD YouTube Thumbnail -->
-                            <img src="https://img.youtube.com/vi/UOqIGm2l6Hg/maxresdefault.jpg" 
+                            <!-- High Resolution Vertical HD YouTube Shorts Thumbnail (720x1280 - Full Frame 9:16) -->
+                            <img src="https://i.ytimg.com/vi/UOqIGm2l6Hg/oar2.jpg" 
                                  alt="Thumbnail Video Demo Flashcard Anti Ngantuk" 
-                                 class="w-full h-full object-cover object-center transform group-hover:scale-105 transition-transform duration-500 ease-out brightness-[0.92] group-hover:brightness-100">
+                                 class="w-full h-full object-cover object-center transform group-hover:scale-105 transition-transform duration-500 ease-out brightness-[0.95] group-hover:brightness-100 block">
                             
                             <!-- Vignette & Glow Overlay -->
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/30 group-hover:from-black/60 transition-colors duration-300"></div>
