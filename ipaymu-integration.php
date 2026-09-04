@@ -132,6 +132,13 @@ class IPaymu_Custom_Gateway {
                 }
             }
         }
+
+        // Auto migrasi harga lama (99.000) ke harga promo baru (80.000)
+        $current_price = get_option('ipaymu_product_price');
+        if ($current_price == '99000' || empty($current_price)) {
+            update_option('ipaymu_product_price', '80000');
+            update_option('ipaymu_normal_price', '100000');
+        }
     }
 
     /**
@@ -715,6 +722,8 @@ class IPaymu_Custom_Gateway {
             var formData = new URLSearchParams();
             formData.append('action', 'ipaymu_submit_order');
             formData.append('product_type', prodType);
+            formData.append('amount', price);
+            formData.append('price', price);
             formData.append('name', name);
             formData.append('phone', phone);
             formData.append('email', email);
@@ -816,7 +825,12 @@ class IPaymu_Custom_Gateway {
             wp_send_json_error(['message' => 'Mohon lengkapi Nama dan WhatsApp Anda.']);
         }
 
-        $price        = (int) get_option('ipaymu_product_price', 80000);
+        $price = isset($_POST['amount']) ? intval($_POST['amount']) : (int) get_option('ipaymu_product_price', 80000);
+        if ($price == 99000 || $price <= 0) {
+            $price = 80000;
+            update_option('ipaymu_product_price', '80000');
+            update_option('ipaymu_normal_price', '100000');
+        }
         $product_name = get_option('ipaymu_product_name', '50 TEKNIK MEMBUKA KELAS ANTI NGANTUK');
         $reference_id = 'ORDER-' . time() . rand(100, 999);
 
