@@ -2,7 +2,7 @@
 /**
  * Plugin Name: iPaymu Gateway & WhatsApp Order - 50 Teknik Anti Ngantuk
  * Description: Integrasi Pemesanan WhatsApp & iPaymu Gateway API v2 untuk WordPress (Mendukung Produk Fisik & Digital, Promo Rp 80.000, Database Order, Manajemen Resi, Toggle WhatsApp / iPaymu).
- * Version: 3.1.0
+ * Version: 3.2.0
  * Author: Kang Deden Gurame
  */
 
@@ -44,11 +44,16 @@ class IPaymu_Custom_Gateway {
                 'callback' => [$this, 'handle_webhook_notification'],
                 'permission_callback' => '__return_true',
             ]);
+            register_rest_route('ipaymu/v1', '/order', [
+                'methods'  => 'POST',
+                'callback' => [$this, 'handle_rest_order_submission'],
+                'permission_callback' => '__return_true',
+            ]);
         });
     }
 
     /**
-     * Membuat & Menyesuaikan Tabel Database `wp_ipaymu_orders`
+     * Membuat & Menyesuaikan Tabel Database `wp_ipaymu_orders` (Dengan Auto Column Migration)
      */
     public function create_orders_database_table() {
         global $wpdb;
@@ -78,7 +83,7 @@ class IPaymu_Custom_Gateway {
             trx_id varchar(100) DEFAULT NULL,
             payment_channel varchar(100) DEFAULT 'WhatsApp CS',
             status varchar(50) NOT NULL DEFAULT 'PENDING',
-            environment varchar(20) NOT NULL DEFAULT 'sandbox',
+            environment varchar(20) NOT NULL DEFAULT 'whatsapp',
             created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
             updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
             PRIMARY KEY  (id),
@@ -89,6 +94,43 @@ class IPaymu_Custom_Gateway {
 
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($sql);
+
+        // Verifikasi dan Auto-tambah Kolom jika tabel sudah pernah dibuat sebelumnya
+        $existing_columns = $wpdb->get_col("DESC " . $table_name, 0);
+        if (!empty($existing_columns)) {
+            $required_columns = [
+                'reference_id'         => "VARCHAR(100) NOT NULL",
+                'product_type'         => "VARCHAR(50) NOT NULL DEFAULT 'physical'",
+                'product_name'         => "VARCHAR(255) NOT NULL",
+                'customer_name'        => "VARCHAR(255) NOT NULL",
+                'customer_phone'       => "VARCHAR(50) NOT NULL",
+                'customer_email'       => "VARCHAR(150) NOT NULL",
+                'shipping_address'     => "TEXT DEFAULT NULL",
+                'shipping_city'        => "VARCHAR(150) DEFAULT NULL",
+                'shipping_subdistrict' => "VARCHAR(150) DEFAULT NULL",
+                'shipping_postal_code' => "VARCHAR(20) DEFAULT NULL",
+                'shipping_notes'       => "TEXT DEFAULT NULL",
+                'tracking_number'      => "VARCHAR(100) DEFAULT ''",
+                'shipping_courier'     => "VARCHAR(50) DEFAULT ''",
+                'shipping_status'      => "VARCHAR(50) NOT NULL DEFAULT 'BELUM_DIKIRIM'",
+                'amount'               => "INT(11) NOT NULL",
+                'payment_method'       => "VARCHAR(50) NOT NULL DEFAULT 'whatsapp'",
+                'payment_url'          => "TEXT DEFAULT NULL",
+                'session_id'           => "VARCHAR(255) DEFAULT NULL",
+                'trx_id'               => "VARCHAR(100) DEFAULT NULL",
+                'payment_channel'      => "VARCHAR(100) DEFAULT 'WhatsApp CS'",
+                'status'               => "VARCHAR(50) NOT NULL DEFAULT 'PENDING'",
+                'environment'          => "VARCHAR(20) NOT NULL DEFAULT 'whatsapp'",
+                'created_at'           => "DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL",
+                'updated_at'           => "DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL"
+            ];
+
+            foreach ($required_columns as $col => $definition) {
+                if (!in_array($col, $existing_columns)) {
+                    $wpdb->query("ALTER TABLE {$table_name} ADD COLUMN {$col} {$definition}");
+                }
+            }
+        }
     }
 
     /**
@@ -372,7 +414,7 @@ class IPaymu_Custom_Gateway {
                         <h1 style="margin: 0; color: #1d2327; font-size: 24px; font-weight: 700;">⚙️ Pengaturan Pemesanan & Gateway</h1>
                         <p style="margin: 5px 0 0; color: #646970; font-size: 13px;">Pengaturan jalur pemesanan (WhatsApp Langsung / iPaymu Gateway API v2).</p>
                     </div>
-                    <span style="background: #008a20; color: #fff; font-weight: bold; font-size: 12px; padding: 5px 12px; border-radius: 20px;">v3.1.0 Ready</span>
+                    <span style="background: #008a20; color: #fff; font-weight: bold; font-size: 12px; padding: 5px 12px; border-radius: 20px;">v3.2.0 Ready</span>
                 </div>
 
                 <form method="post" action="options.php">
@@ -666,7 +708,9 @@ class IPaymu_Custom_Gateway {
                 return;
             }
 
-            // Simpan data order ke database via AJAX secara background
+            btn.innerHTML = '⏳ Menyimpan Pesanan & Menghubungkan ke WA...';
+            btn.disabled = true;
+
             var formData = new URLSearchParams();
             formData.append('action', 'ipaymu_submit_order');
             formData.append('product_type', prodType);
@@ -680,56 +724,48 @@ class IPaymu_Custom_Gateway {
             formData.append('notes', notes);
             formData.append('checkout_mode', mode);
 
-            if(mode === 'whatsapp') {
-                btn.innerHTML = '⏳ Menghubungkan ke WhatsApp CS...';
+            fetch('<?php echo esc_url($ajax_url); ?>', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData
+            })
+            .then(function(res){ return res.json(); })
+            .then(function(data){
+                btn.disabled = false;
+                btn.innerHTML = (mode === 'whatsapp') ? '📲 PESAN SEKARANG VIA WHATSAPP (RP ' + price.toLocaleString('id-ID') + ')' : '💳 BAYAR SEKARANG VIA IPAYMU';
                 
-                // Kirim request background simpan database
-                fetch('<?php echo esc_url($ajax_url); ?>', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: formData
-                }).catch(function(err){ console.log(err); });
+                if(mode === 'whatsapp') {
+                    var refCode = (data && data.data && data.data.reference_id) ? data.data.reference_id : '';
+                    var refText = refCode ? ("%0A🔖 *No. Pesanan:* " + refCode) : "";
 
-                // Format teks WhatsApp
-                var waText = "Halo Kang Deden Gurame / CS,%0A%0ASaya ingin memesan *50 TEKNIK MEMBUKA KELAS ANTI NGANTUK* dengan *Harga Promo Hari Ini Rp " + price.toLocaleString('id-ID') + "* (Hemat Rp 20.000):%0A%0A" +
-                             "👤 *Nama Penerima:* " + encodeURIComponent(name) + "%0A" +
-                             "📱 *No. WhatsApp:* " + encodeURIComponent(phone) + "%0A" +
-                             "📧 *Email:* " + encodeURIComponent(email) + "%0A" +
-                             (prodType === 'physical' ? ("🏠 *Alamat:* " + encodeURIComponent(address) + "%0A📍 *Kecamatan:* " + encodeURIComponent(subdistrict) + "%0A🏙️ *Kota/Kab:* " + encodeURIComponent(city) + "%0A") : "") +
-                             "💰 *Total Tagihan:* Rp " + price.toLocaleString('id-ID') + "%0A%0A" +
-                             "Mohon nomor rekening/info pembayaran dan konfirmasi pesanannya. Terima kasih!";
+                    var waText = "Halo Kang Deden Gurame / CS,%0A%0ASaya ingin memesan buku *50 TEKNIK MEMBUKA KELAS ANTI NGANTUK* dengan *Harga Promo Hari Ini Rp " + price.toLocaleString('id-ID') + "* (Hemat Rp 20.000):%0A" +
+                                 refText + "%0A" +
+                                 "👤 *Nama Penerima:* " + encodeURIComponent(name) + "%0A" +
+                                 "📱 *No. WhatsApp:* " + encodeURIComponent(phone) + "%0A" +
+                                 "📧 *Email:* " + encodeURIComponent(email) + "%0A" +
+                                 (prodType === 'physical' ? ("🏠 *Alamat Lengkap:* " + encodeURIComponent(address) + "%0A📍 *Kecamatan:* " + encodeURIComponent(subdistrict) + "%0A🏙️ *Kota/Kab:* " + encodeURIComponent(city) + "%0A") : "") +
+                                 "💰 *Total Tagihan:* Rp " + price.toLocaleString('id-ID') + "%0A%0A" +
+                                 "Mohon info nomor rekening / pembayaran dan konfirmasi pengirimannya ya. Terima kasih!";
 
-                setTimeout(function(){
-                    btn.innerHTML = '📲 PESAN SEKARANG VIA WHATSAPP (RP ' + price.toLocaleString('id-ID') + ')';
                     window.open('https://wa.me/' + csPhone + '?text=' + waText, '_blank');
-                }, 300);
-
-            } else {
-                btn.innerHTML = '⏳ Menghubungkan ke iPaymu Gateway...';
-                btn.disabled = true;
-
-                fetch('<?php echo esc_url($ajax_url); ?>', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: formData
-                })
-                .then(function(res){ return res.json(); })
-                .then(function(data){
+                } else {
                     if(data.success && data.data.payment_url) {
                         window.location.href = data.data.payment_url;
                     } else {
-                        btn.disabled = false;
-                        btn.innerHTML = '💳 BAYAR SEKARANG VIA IPAYMU (RP ' + price.toLocaleString('id-ID') + ')';
                         alert(data.data.message || 'Terjadi kendala saat memproses iPaymu.');
                     }
-                })
-                .catch(function(err){
-                    btn.disabled = false;
-                    btn.innerHTML = '💳 BAYAR SEKARANG VIA IPAYMU (RP ' + price.toLocaleString('id-ID') + ')';
-                    alert('Mengarahkan ke WhatsApp CS...');
-                    window.location.href = 'https://wa.me/' + csPhone + '?text=Halo%20CS,%20saya%20ingin%20memesan%20dengan%20Nama:%20' + encodeURIComponent(name);
-                });
-            }
+                }
+            })
+            .catch(function(err){
+                btn.disabled = false;
+                btn.innerHTML = (mode === 'whatsapp') ? '📲 PESAN SEKARANG VIA WHATSAPP (RP ' + price.toLocaleString('id-ID') + ')' : '💳 BAYAR SEKARANG VIA IPAYMU';
+                console.error(err);
+                
+                // Fallback direct open WA even if network glitch
+                var waText = "Halo Kang Deden Gurame / CS,%0A%0ASaya ingin memesan buku *50 TEKNIK MEMBUKA KELAS ANTI NGANTUK* dengan *Harga Promo Hari Ini Rp " + price.toLocaleString('id-ID') + "*:%0A%0A" +
+                             "👤 *Nama:* " + encodeURIComponent(name) + "%0A📱 *No. WA:* " + encodeURIComponent(phone) + "%0A🏠 *Alamat:* " + encodeURIComponent(address + ', ' + city);
+                window.open('https://wa.me/' + csPhone + '?text=' + waText, '_blank');
+            });
         }
         </script>
         <?php
@@ -747,6 +783,14 @@ class IPaymu_Custom_Gateway {
             return ob_get_clean();
         }
         return do_shortcode('[ipaymu_checkout_box]');
+    }
+
+    /**
+     * Endpoint REST API untuk Order Submission
+     */
+    public function handle_rest_order_submission($request) {
+        $_POST = $request->get_params();
+        $this->handle_order_submission();
     }
 
     /**
@@ -775,10 +819,12 @@ class IPaymu_Custom_Gateway {
         $product_name = get_option('ipaymu_product_name', '50 TEKNIK MEMBUKA KELAS ANTI NGANTUK');
         $reference_id = 'ORDER-' . time() . rand(100, 999);
 
+        // Pastikan tabel dan kolom siap
+        $this->create_orders_database_table();
+
         // Jika mode WhatsApp: simpan order ke database lalu return success
         if ($checkout_mode === 'whatsapp') {
-            $this->create_orders_database_table();
-            $wpdb->insert(
+            $insert_result = $wpdb->insert(
                 $table_name,
                 [
                     'reference_id'         => $reference_id,
@@ -803,7 +849,16 @@ class IPaymu_Custom_Gateway {
                 ]
             );
 
-            wp_send_json_success(['mode' => 'whatsapp', 'reference_id' => $reference_id]);
+            if ($insert_result === false) {
+                error_log("iPaymu Order Insert Error: " . $wpdb->last_error);
+                wp_send_json_error(['message' => 'Gagal simpan database: ' . $wpdb->last_error]);
+            }
+
+            wp_send_json_success([
+                'mode'         => 'whatsapp',
+                'order_id'     => $wpdb->insert_id,
+                'reference_id' => $reference_id
+            ]);
             wp_die();
         }
 
@@ -859,7 +914,6 @@ class IPaymu_Custom_Gateway {
             $payment_url = $result['Data']['Url'];
             $session_id  = $result['Data']['SessionID'] ?? '';
 
-            $this->create_orders_database_table();
             $wpdb->insert(
                 $table_name,
                 [
